@@ -7,6 +7,8 @@ using Zenject;
 public class EditorScripts : MonoBehaviour
 {
     private InputDataManager _inputDataManager;
+    private InputDisplayView _inputDisplayView;
+
 
     private static EditorScripts _instance;
 
@@ -15,17 +17,18 @@ public class EditorScripts : MonoBehaviour
     }
 
     [Inject]
-    public void Construct(InputDataManager inputDataManager) {
-        print(inputDataManager);
+    public void Construct(InputDataManager inputDataManager, InputDisplayView inputDisplayView) {
         _inputDataManager = inputDataManager;
+        _inputDisplayView = inputDisplayView;
     }
 
-    void LoadData() {
-        _inputDataManager.LoadData();
-    }
 
-    [MenuItem("Cheats/Load Data")]
+    [MenuItem("Cheats/Show Image")]
     static void CheatLoadData() {
-        _instance.LoadData();
+        if (!_instance._inputDataManager.IsReady) {
+            Debug.LogError("Data Not Ready");
+            return;
+        }
+        _instance._inputDisplayView.ShowImage(_instance._inputDataManager.GetRandomImage(true));
     }
 }

@@ -12,15 +12,23 @@ public class InputDataManager : MonoBehaviour
     private const string TestImages = "Model/t10k-images.idx3-ubyte";
     private const string TestLabels = "Model/t10k-labels.idx1-ubyte";
 
-    private Image[] TrainingData;
-    private Image[] TestData;
+    private DataImage[] TrainingData;
+    private DataImage[] TestData;
 
-    public void LoadData() {
-        TrainingData = Read(TrainImages, TrainLabels);
-        TestData = Read(TestImages, TestLabels);
+    private bool _isReady;
+
+    private void Start() {
+        LoadData();
+        _isReady = true;
     }
 
-    private Image[] Read(string imagesPath, string labelsPath) {
+    private void LoadData() {
+        TrainingData = Read(TrainImages, TrainLabels);
+        TestData = Read(TestImages, TestLabels);
+        Debug.Log("Data Loaded");
+    }
+
+    private DataImage[] Read(string imagesPath, string labelsPath) {
         BinaryReader labels = new BinaryReader(new FileStream(labelsPath, FileMode.Open));
         BinaryReader images = new BinaryReader(new FileStream(imagesPath, FileMode.Open));
 
@@ -31,7 +39,7 @@ public class InputDataManager : MonoBehaviour
         int width = images.ReadBigInt32();
         int height = images.ReadBigInt32();
 
-        Image[] result = new Image[numberOfImages];
+        DataImage[] result = new DataImage[numberOfImages];
 
         int magicLabel = labels.ReadBigInt32();
         int numberOfLabels = labels.ReadBigInt32();
@@ -42,7 +50,7 @@ public class InputDataManager : MonoBehaviour
 
             arr.ForEach((j, k) => arr[j, k] = bytes[j * height + k]);
 
-            result[i] = new Image() {
+            result[i] = new DataImage() {
                 Data = arr,
                 Label = labels.ReadByte()
             };
@@ -54,16 +62,20 @@ public class InputDataManager : MonoBehaviour
         return result;
     }
 
-    public Image GetRandomImage(bool isTraining) {
+    public DataImage GetRandomImage(bool isTraining) {
         if (isTraining) {
             return TrainingData[UnityEngine.Random.Range(0, TrainingData.Length)];
         } else {
             return TestData[UnityEngine.Random.Range(0, TrainingData.Length)];
         }
     }
+
+    public bool IsReady {
+        get => _isReady;
+    }
 }
 
-public class Image {
+public class DataImage {
     public byte Label { get; set; }
     public byte[,] Data { get; set; }
 }
