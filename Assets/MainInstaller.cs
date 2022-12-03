@@ -5,8 +5,9 @@ using Zenject;
 
 public class MainInstaller : MonoInstaller
 {
+    [SerializeField] private InputDataManager _inputDataManager;
+
     override public void InstallBindings() {
-        //Container.Bind
-        print("123");
+        Container.Bind<InputDataManager>().FromInstance(_inputDataManager);
     }
 }
