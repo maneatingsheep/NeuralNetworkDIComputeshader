@@ -7,10 +7,16 @@ public class MainInstaller : MonoInstaller
 {
     [SerializeField] private InputDataManager _inputDataManager;
     [SerializeField] private InputDisplayView _inputDisplayView;
+    [SerializeField] private NetworkOutputDisaply _networkOutputDisaply;
+    [SerializeField] private ModelManager _modelManager;
     
 
     override public void InstallBindings() {
         Container.Bind<InputDataManager>().FromInstance(_inputDataManager);
         Container.Bind<InputDisplayView>().FromInstance(_inputDisplayView);
+        Container.Bind<NetworkOutputDisaply>().FromInstance(_networkOutputDisaply);
+        Container.Bind<ModelManager>().FromInstance(_modelManager);
+        Container.Bind<NeuralNetwork>().AsSingle().NonLazy();
+        Container.Bind<Trainer>().AsSingle().NonLazy();
     }
 }

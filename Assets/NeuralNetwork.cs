@@ -1,7 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using System;
 
-public class NeuralNetwork { 
+public class NeuralNetwork {
+    internal void SetInput(byte[,] data) {
+        
+    }
 
+    internal int Run() {
+        return 1;
+    }
 }
