@@ -8,7 +8,7 @@ public class Model
         AllWeights = new NetworkWeightsSingle[network.NUM_OF_HIDDEN_LAYERS + 1];
         for (int i = 0; i < AllWeights.Length; i++) {
             NetworkLayer fromLayer = (i == 0) ? network.InputLayer : network.HiddenLayers[i - 1];
-            NetworkLayer toLayer = (i == network.NUM_OF_HIDDEN_LAYERS) ? network.HiddenLayers[i] : network.OutputLayer;
+            NetworkLayer toLayer = (i == network.NUM_OF_HIDDEN_LAYERS) ? network.OutputLayer : network.HiddenLayers[i];
 
             AllWeights[i] = new NetworkWeightsSingle(fromLayer._neurons.Length, toLayer._neurons.Length);
         }

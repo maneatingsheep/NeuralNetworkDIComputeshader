@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 public class NeuralNetwork {
 
@@ -17,7 +18,7 @@ public class NeuralNetwork {
 
         HiddenLayers = new NetworkLayer[NUM_OF_HIDDEN_LAYERS];
         for (int i = 0; i < NUM_OF_HIDDEN_LAYERS; i++) {
-            HiddenLayers[i] = new NetworkLayer(100);
+            HiddenLayers[i] = new NetworkLayer(50);
         }
     }
 
@@ -32,10 +33,10 @@ public class NeuralNetwork {
     internal int Run() {
         CalculateLayer(ref _model.AllWeights[0], ref InputLayer, HiddenLayers[0]);
         for (int i = 0; i < NUM_OF_HIDDEN_LAYERS - 1; i++) {
-            CalculateLayer(ref _model.AllWeights[i + 1], ref HiddenLayers[i - 1], HiddenLayers[i]);
+            CalculateLayer(ref _model.AllWeights[i + 1], ref HiddenLayers[i], HiddenLayers[i + 1]);
         }
 
-        CalculateLayer(ref _model.AllWeights[0], ref HiddenLayers[HiddenLayers.Length - 1], OutputLayer);
+        CalculateLayer(ref _model.AllWeights[NUM_OF_HIDDEN_LAYERS], ref HiddenLayers[HiddenLayers.Length - 1], OutputLayer);
 
         float max = -1f;
         int maxIndex = 0;
@@ -50,9 +51,13 @@ public class NeuralNetwork {
     }
 
     private void CalculateLayer(ref NetworkWeightsSingle networkWeightsSingle, ref NetworkLayer inLayer, NetworkLayer outLayer) {
-        for (int oIndex = 0; oIndex < networkWeightsSingle.Weights.GetLength(1); oIndex++) {
+        int inLen = inLayer._neurons.Length;
+        int outLen = outLayer._neurons.Length;
+
+        for (int oIndex = 0; oIndex < outLen; oIndex++) {
             outLayer._neurons[oIndex] = 0f;
-            for (int iIndex = 0; iIndex < networkWeightsSingle.Weights.GetLength(0); iIndex++) {
+
+            for (int iIndex = 0; iIndex < inLen; iIndex++) {
                 outLayer._neurons[oIndex] += inLayer._neurons[iIndex] * networkWeightsSingle.Weights[iIndex, oIndex];
             }
         }

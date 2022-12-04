@@ -11,6 +11,7 @@ public class EditorScripts : MonoBehaviour
     private NeuralNetwork _neuralNetwork;
     private NetworkOutputDisaply _networkOutputDisaply;
     private Trainer _trainer;
+    private ModelManager _modelManager;
     private static EditorScripts _instance;
 
     private void Awake() {
@@ -22,12 +23,14 @@ public class EditorScripts : MonoBehaviour
         InputDisplayView inputDisplayView, 
         NetworkOutputDisaply networkOutputDisaply, 
         NeuralNetwork neuralNetwork,
-        Trainer trainer) {
+        Trainer trainer,
+        ModelManager modelManager) {
         _inputDataManager = inputDataManager;
         _inputDisplayView = inputDisplayView;
         _neuralNetwork = neuralNetwork;
         _networkOutputDisaply = networkOutputDisaply;
         _trainer = trainer;
+        _modelManager = modelManager;
     }
 
 
@@ -41,6 +44,7 @@ public class EditorScripts : MonoBehaviour
         var data = _instance._inputDataManager.GetRandomImage(true);
 
         _instance._inputDisplayView.ShowImage(data);
+        _instance._neuralNetwork.SetModel(_instance._modelManager.EmptyModel(_instance._neuralNetwork));
         _instance._neuralNetwork.SetInput(data.Data);
         int result = _instance._neuralNetwork.Run();
         _instance._networkOutputDisaply.ShowOutput(result);

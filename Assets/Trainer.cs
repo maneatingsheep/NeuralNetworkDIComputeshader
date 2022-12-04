@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using UnityEngine;
 
 public class Trainer {
 
@@ -29,8 +30,8 @@ public class Trainer {
 
         _models = new Model[SIZE_OF_GEN];
         for (int i = 0; i < SIZE_OF_GEN; i++) {
-            _models[i].Score = 0;
             _models[i] = _modelManager.EmptyModel(_neuralNetwork);
+            _models[i].Score = 0;
         }
 
         await StartTraining();
@@ -59,6 +60,7 @@ public class Trainer {
             }
 
             _currentGen++;
+            Debug.Log("completed gen " + _currentGen);
             await Task.Yield();
         }
     }
