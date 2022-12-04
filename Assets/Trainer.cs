@@ -39,7 +39,7 @@ public class Trainer {
     private async Task StartTraining() {
         while (!_halt) {
             if (_currentGen != 0) {
-                _models = _modelManager.BreedNextGen(_models);
+                _models = _modelManager.BreedNextGen(ref _models);
             }
 
             DataImage[] images = new DataImage[NUM_OF_ATTEMPTS];

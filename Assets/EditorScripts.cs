@@ -32,7 +32,7 @@ public class EditorScripts : MonoBehaviour
 
 
     [MenuItem("Cheats/Show Image")]
-    static void CheatLoadData() {
+    static void ShowImage() {
         if (!_instance._inputDataManager.IsReady) {
             Debug.LogError("Data Not Ready");
             return;
@@ -51,5 +51,10 @@ public class EditorScripts : MonoBehaviour
     [MenuItem("Cheats/Train")]
     static void Train() {
         _instance._trainer.Train();
+    }
+
+    [MenuItem("Cheats/Stop Training")]
+    static void StopTrainig() {
+        _instance._trainer.StopTraining();
     }
 }
