@@ -30,16 +30,15 @@ public class Trainer {
         _models = new Model[SIZE_OF_GEN];
         for (int i = 0; i < SIZE_OF_GEN; i++) {
             _models[i].Score = 0;
-            _models[i] = _modelManager.EmptyModel();
+            _models[i] = _modelManager.EmptyModel(_neuralNetwork);
         }
 
         await StartTraining();
     }
 
     private async Task StartTraining() {
-
         while (!_halt) {
-            if (_currentGen == 0) {
+            if (_currentGen != 0) {
                 _models = _modelManager.BreedNextGen(_models);
             }
 
@@ -50,14 +49,9 @@ public class Trainer {
             }
 
             for (int m = 0; m < _models.Length; m++) {
-                int score = 0;
-                for (int a = 0; a < NUM_OF_ATTEMPTS; a++) {
-                    _neuralNetwork.SetInput(images[a].Data);
-                    int answer = _neuralNetwork.Run();
-                    if (answer == (int)images[a].Label) {
-                        score++;
-                    }
-                }
+                _neuralNetwork.SetModel(_models[m]);
+                float score = PlayGame(images);
+                
                 _models[m].Score = score;
                 if (_bestModelIndex == -1 || _models[m].Score > _models[_bestModelIndex].Score) {
                     _bestModelIndex = m;
@@ -67,6 +61,20 @@ public class Trainer {
             _currentGen++;
             await Task.Yield();
         }
+    }
+
+    private float PlayGame(DataImage[] images) {
+        int score = 0;
+
+        for (int a = 0; a < NUM_OF_ATTEMPTS; a++) {
+            _neuralNetwork.SetInput(images[a].Data);
+            int answer = _neuralNetwork.Run();
+            if (answer == (int)images[a].Label) {
+                score++;
+            }
+        }
+
+        return score;
     }
 
     public void StopTraining() {

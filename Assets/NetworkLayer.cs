@@ -4,5 +4,8 @@ using UnityEngine;
 
 public class NetworkLayer
 {
-    
+    public float[] _neurons;
+    public NetworkLayer(int size) {
+        _neurons = new float[size];
+    }
 }
