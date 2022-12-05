@@ -9,7 +9,6 @@ public class Trainer {
 
     private int _currentGen = 0;
 
-    private Model[] _models;
     private ModelManager _modelManager;
     private InputDataManager _inputDataManager;
     private NeuralNetwork _neuralNetwork;
@@ -26,11 +25,7 @@ public class Trainer {
     internal async void Train() {
 
         _halt = false;
-        _models = new Model[SIZE_OF_GEN];
-        for (int i = 0; i < SIZE_OF_GEN; i++) {
-            _models[i] = _modelManager.EmptyModel(_neuralNetwork);
-            _models[i].Score = 0;
-        }
+        _modelManager.Setup(SIZE_OF_GEN);
 
         await StartTraining();
     }
@@ -38,7 +33,7 @@ public class Trainer {
     private async Task StartTraining() {
         while (!_halt) {
             if (_currentGen != 0) {
-                _models = _modelManager.BreedNextGen(ref _models);
+                _modelManager.BreedNextGen();
             }
 
             DataImage[] images = new DataImage[NUM_OF_ATTEMPTS];
@@ -50,26 +45,27 @@ public class Trainer {
             _bestModelIndex = -1;
             float avgScore = 0f;
 
-            for (int m = 0; m < _models.Length; m++) {
-                _neuralNetwork.SetModel(_models[m]);
-                float score = PlayGame(images);
+            for (int m = 0; m < _modelManager.TrainModels.Length; m++) {
+                _neuralNetwork.SetModel(_modelManager.TrainModels[m]);
+                float score = PlayGame(ref images);
                 
-                _models[m].Score = score;
-                avgScore += _models[m].Score;
-                if (_bestModelIndex == -1 || _models[m].Score > _models[_bestModelIndex].Score) {
+                _modelManager.TrainModels[m].Score = score;
+
+                avgScore += _modelManager.TrainModels[m].Score;
+                if (_bestModelIndex == -1 || _modelManager.TrainModels[m].Score > _modelManager.TrainModels[_bestModelIndex].Score) {
                     _bestModelIndex = m;
                 }
             }
 
-            avgScore /= _models.Length;
+            avgScore /= _modelManager.TrainModels.Length;
 
             _currentGen++;
-            Debug.Log($"completed gen {_currentGen} score: {_models[_bestModelIndex].Score} avg score: {avgScore}");
+            Debug.Log($"completed gen {_currentGen} score: {_modelManager.TrainModels[_bestModelIndex].Score} avg score: {avgScore}");
             await Task.Yield();
         }
     }
 
-    private float PlayGame(DataImage[] images) {
+    private float PlayGame(ref DataImage[] images) {
         int score = 0;
 
         for (int a = 0; a < NUM_OF_ATTEMPTS; a++) {
@@ -88,6 +84,6 @@ public class Trainer {
     }
 
     internal Model GetBestModel() {
-        return (_bestModelIndex > -1)?_models[_bestModelIndex]: _modelManager.EmptyModel(_neuralNetwork); 
+        return (_bestModelIndex > -1)?_modelManager.TrainModels[_bestModelIndex]: null; 
     }
 }

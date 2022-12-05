@@ -35,12 +35,12 @@ public class NeuralNetwork {
     }
 
     internal int Run() {
-        CalculateLayer(ref _model.AllWeights[0], ref InputLayer, ref HiddenLayers[0]);
+        CalculateLayer(_model.Weights[0], InputLayer, HiddenLayers[0]);
         for (int i = 0; i < NUM_OF_HIDDEN_LAYERS - 1; i++) {
-            CalculateLayer(ref _model.AllWeights[i + 1], ref HiddenLayers[i], ref HiddenLayers[i + 1]);
+            CalculateLayer(_model.Weights[i + 1], HiddenLayers[i], HiddenLayers[i + 1]);
         }
 
-        CalculateLayer(ref _model.AllWeights[NUM_OF_HIDDEN_LAYERS], ref HiddenLayers[HiddenLayers.Length - 1], ref OutputLayer);
+        CalculateLayer(_model.Weights[NUM_OF_HIDDEN_LAYERS], HiddenLayers[HiddenLayers.Length - 1], OutputLayer);
 
         float max = -1f;
         int maxIndex = 0;
@@ -54,7 +54,7 @@ public class NeuralNetwork {
         return maxIndex;
     }
 
-    private void CalculateLayer(ref NetworkWeightsSingle networkWeightsSingle, ref NetworkLayer inLayer, ref NetworkLayer outLayer) {
+    private void CalculateLayer(NetworkWeightsSingle networkWeightsSingle, NetworkLayer inLayer, NetworkLayer outLayer) {
         int inLen = inLayer._neurons.Length;
         int outLen = outLayer._neurons.Length;
 
