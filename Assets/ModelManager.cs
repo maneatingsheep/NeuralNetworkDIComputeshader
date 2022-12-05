@@ -4,33 +4,42 @@ using UnityEngine;
 
 public class ModelManager : MonoBehaviour
 {
-    private float[] _scores;
 
     public Model EmptyModel(NeuralNetwork network) {
         return new Model(network);
     }
 
+
     internal Model[] BreedNextGen(ref Model[] models) {
 
-        _scores = new float[models.Length];
+
+        float[] scores = new float[models.Length];
         
         float total = 0;
         for (int i = 0; i < models.Length; i++) {
-            _scores[i] = models[i].Score;
-            total += _scores[i];
+            scores[i] = models[i].Score;
+            total += scores[i];
         }
 
-        for (int i = 0; i < models.Length; i++) {
-            _scores[i] /= total;
+        if (total == 0) {
+            for (int i = 0; i < models.Length; i++) {
+                scores[i] = 1f;
+            }
+        } else {
+            for (int i = 0; i < models.Length; i++) {
+                scores[i] /= total;
+            }
         }
+
+       
 
         var res = new Model[models.Length];
 
         for (int i = 0; i < models.Length; i++) {
-            Model parent1 = FindParent(ref models);
+            Model parent1 = FindParent(ref models, ref scores);
             Model parent2;
             do {
-                parent2 = FindParent(ref models);
+                parent2 = FindParent(ref models, ref scores);
             } while (parent1 == parent2);
             res[i] = BreedModels(parent1, parent2);
         }
@@ -39,11 +48,11 @@ public class ModelManager : MonoBehaviour
         return res;
     }
 
-    private Model FindParent(ref Model[] models) {
+    private Model FindParent(ref Model[] models, ref float[] scores) {
         float rand = Random.value;
         float count = 0;
-        for (int i = 0; i < _scores.Length; i++) {
-            count += _scores[i];
+        for (int i = 0; i < scores.Length; i++) {
+            count += scores[i];
             if (count >= rand) {
                 return models[i];
             }
@@ -60,7 +69,7 @@ public class ModelManager : MonoBehaviour
             for (int i = 0; i < xSize; i++) {
                 for (int j = 0; j < ySize; j++) {
                     float p1Val = parent1.AllWeights[w].Weights[i, j];
-                    float p2Val = parent1.AllWeights[w].Weights[i, j];
+                    float p2Val = parent2.AllWeights[w].Weights[i, j];
                     //select one random
                     float selection = (Random.value > 0.5f) ? p1Val : p2Val;
                     //mutation

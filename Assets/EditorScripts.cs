@@ -44,7 +44,7 @@ public class EditorScripts : MonoBehaviour
         var data = _instance._inputDataManager.GetRandomImage(true);
 
         _instance._inputDisplayView.ShowImage(data);
-        _instance._neuralNetwork.SetModel(_instance._modelManager.EmptyModel(_instance._neuralNetwork));
+        _instance._neuralNetwork.SetModel(_instance._trainer.GetBestModel());
         _instance._neuralNetwork.SetInput(data.Data);
         int result = _instance._neuralNetwork.Run();
         _instance._networkOutputDisaply.ShowOutput(result);

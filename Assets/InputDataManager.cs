@@ -46,9 +46,9 @@ public class InputDataManager : MonoBehaviour
 
         for (int i = 0; i < numberOfImages; i++) {
             var bytes = images.ReadBytes(width * height);
-            var arr = new byte[height, width];
+            var arr = new float[height, width];
 
-            arr.ForEach((j, k) => arr[j, k] = bytes[j * height + k]);
+            arr.ForEach((j, k) => arr[j, k] = (bytes[j * height + k]) / 256f);
 
             result[i] = new DataImage() {
                 Data = arr,
@@ -66,7 +66,7 @@ public class InputDataManager : MonoBehaviour
         if (isTraining) {
             return TrainingData[UnityEngine.Random.Range(0, TrainingData.Length)];
         } else {
-            return TestData[UnityEngine.Random.Range(0, TrainingData.Length)];
+            return TestData[UnityEngine.Random.Range(0, TestData.Length)];
         }
     }
 
@@ -77,7 +77,7 @@ public class InputDataManager : MonoBehaviour
 
 public class DataImage {
     public byte Label { get; set; }
-    public byte[,] Data { get; set; }
+    public float[,] Data { get; set; }
 }
 
 public static class Extensions {

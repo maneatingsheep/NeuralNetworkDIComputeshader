@@ -5,7 +5,7 @@ using UnityEngine;
 public class Trainer {
 
     private const int SIZE_OF_GEN = 100;
-    private const int NUM_OF_ATTEMPTS = 30; //consider increase for high scores
+    private const int NUM_OF_ATTEMPTS = 50; //consider increase for high scores
 
     private int _currentGen = 0;
 
@@ -26,8 +26,6 @@ public class Trainer {
     internal async void Train() {
 
         _halt = false;
-        _bestModelIndex = -1;
-
         _models = new Model[SIZE_OF_GEN];
         for (int i = 0; i < SIZE_OF_GEN; i++) {
             _models[i] = _modelManager.EmptyModel(_neuralNetwork);
@@ -49,18 +47,24 @@ public class Trainer {
                 images[i] = _inputDataManager.GetRandomImage(true);
             }
 
+            _bestModelIndex = -1;
+            float avgScore = 0f;
+
             for (int m = 0; m < _models.Length; m++) {
                 _neuralNetwork.SetModel(_models[m]);
                 float score = PlayGame(images);
                 
                 _models[m].Score = score;
+                avgScore += _models[m].Score;
                 if (_bestModelIndex == -1 || _models[m].Score > _models[_bestModelIndex].Score) {
                     _bestModelIndex = m;
                 }
             }
 
+            avgScore /= _models.Length;
+
             _currentGen++;
-            Debug.Log("completed gen " + _currentGen);
+            Debug.Log($"completed gen {_currentGen} score: {_models[_bestModelIndex].Score} avg score: {avgScore}");
             await Task.Yield();
         }
     }
@@ -81,5 +85,9 @@ public class Trainer {
 
     public void StopTraining() {
         _halt = true;
+    }
+
+    internal Model GetBestModel() {
+        return (_bestModelIndex > -1)?_models[_bestModelIndex]: _modelManager.EmptyModel(_neuralNetwork); 
     }
 }

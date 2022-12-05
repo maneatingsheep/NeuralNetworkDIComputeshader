@@ -20,7 +20,7 @@ public class InputDisplayView : MonoBehaviour
 
         for (int i = 0; i < Imagesize; i++) {
             for (int j = 0; j < Imagesize; j++) {
-                float c = image.Data[Imagesize - i - 1, j] / 256f;
+                float c = image.Data[Imagesize - i - 1, j];
                 colors[i * Imagesize + j] = new Color(c, c, c);
             }
         }
