@@ -338,6 +338,7 @@ MonoBehaviour:
   _inputDisplayView: {fileID: 530076378}
   _networkOutputDisaply: {fileID: 1568987332}
   _modelManager: {fileID: 299940152}
+  _computeshader: {fileID: 7200000, guid: f794d516bfc8e424cb450badb032c75b, type: 3}
 --- !u!114 &623050823
 MonoBehaviour:
   m_ObjectHideFlags: 0

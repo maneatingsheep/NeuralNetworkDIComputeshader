@@ -1,0 +1,39 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+
+StructuredBuffer<float> _InputBuffer;
+RWStructuredBuffer<float> _OutputBuffer;
+StructuredBuffer<float> _FlatMatrix;
+
+float ActivationFunc(float weightedSum) {
+    float input = clamp(weightedSum, 0., 1.);
+    float cosOut = cos(input * 3.14159265f);
+    cosOut = 1 - ((cosOut * 0.5f) + 0.5f);
+    return cosOut;
+}
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    uint inLen = 0.;
+    uint outLen = 0.;
+    uint stride = 0.;
+
+    _InputBuffer.GetDimensions(inLen, stride);
+    _OutputBuffer.GetDimensions(outLen, stride);
+
+    float weightedSum = 0.;
+
+    for (uint iIndex = 0; iIndex < inLen; iIndex++) {
+        weightedSum += _InputBuffer[iIndex] * _FlatMatrix[iIndex * outLen + id.x];
+    }
+
+    weightedSum /= inLen;
+
+    weightedSum = ActivationFunc(weightedSum);
+    _OutputBuffer[id.x] = weightedSum;
+    
+}
+
+

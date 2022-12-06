@@ -99,24 +99,22 @@ public class ModelManager : MonoBehaviour {
 
         for (int w = 0; w < parent1.Weights.Length; w++) {
 
-            int xSize = parent1.Weights[w].Matrix.GetLength(0);
-            int ySize = parent1.Weights[w].Matrix.GetLength(1);
+            int xSize = parent1.Weights[w].SizeX;
+            int ySize = parent1.Weights[w].SizeY;
             
             for (int i = 0; i < xSize; i++) {
                 for (int j = 0; j < ySize; j++) {
-                    float p1Val = parent1.Weights[w].Matrix[i, j];
-                    float p2Val = parent2.Weights[w].Matrix[i, j];
+                    float p1Val = parent1.Weights[w].GetValue(i, j);
+                    float p2Val = parent2.Weights[w].GetValue(i, j);
                     //select one random
                     float selection = (Random.value > 0.5f) ? p1Val : p2Val;
                     //mutation
                     selection = (Random.value > 0.01f) ? selection : Mathf.Clamp((selection + (Random.value - 0.5f) * 0.001f), 0f, 1f);
 
-                    target.Weights[w].Matrix[i, j] = selection;
+                    target.Weights[w].SetValue(selection,i, j);
                 }
             }
         }
         
     }
-
-    
 }

@@ -12,7 +12,18 @@ public class NeuralNetwork {
     private Model _model;
 
     private int _imageSize = 26;
-    public NeuralNetwork() {
+
+    private ComputeShader _computeShader;
+    private bool _useGPU = true;
+
+    private ComputeBuffer _inputBuffer;
+    private ComputeBuffer _outputBuffer;
+    private ComputeBuffer _flatMatrixBuffer;
+
+    public NeuralNetwork(ComputeShader computeShader) {
+
+        _computeShader = computeShader;
+
         InputLayer = new NetworkLayer(_imageSize * _imageSize);
         OutputLayer = new NetworkLayer(10);
 
@@ -20,6 +31,7 @@ public class NeuralNetwork {
         for (int i = 0; i < NUM_OF_HIDDEN_LAYERS; i++) {
             HiddenLayers[i] = new NetworkLayer(70);
         }
+
     }
 
     internal void SetModel(Model model) {
@@ -55,26 +67,49 @@ public class NeuralNetwork {
     }
 
     private void CalculateLayer(WeightMatrix networkWeightsSingle, NetworkLayer inLayer, NetworkLayer outLayer) {
-        int inLen = inLayer._neurons.Length;
-        int outLen = outLayer._neurons.Length;
 
         float max = 0f;
         float min = float.MaxValue;
+        int inLen = inLayer._neurons.Length;
+        int outLen = outLayer._neurons.Length;
 
-        for (int oIndex = 0; oIndex < outLen; oIndex++) {
-            outLayer._neurons[oIndex] = 0f;
+        if (_useGPU) {
+            int kernelID = _computeShader.FindKernel("CSMain");
 
-            float weightedSum = 0f;
-            for (int iIndex = 0; iIndex < inLen; iIndex++) {
-                weightedSum += inLayer._neurons[iIndex] * networkWeightsSingle.Matrix[iIndex, oIndex];   
+            _inputBuffer = new ComputeBuffer(inLen, sizeof(float), ComputeBufferType.Default, ComputeBufferMode.Immutable);
+            _outputBuffer = new ComputeBuffer(outLen, sizeof(float), ComputeBufferType.Default, ComputeBufferMode.Dynamic);
+
+            var flatMatrix = networkWeightsSingle.GetFlatMatrix();
+            _flatMatrixBuffer = new ComputeBuffer(flatMatrix.Length, sizeof(float), ComputeBufferType.Default, ComputeBufferMode.Immutable);
+
+            _computeShader.SetBuffer(kernelID, "_InputBuffer", _inputBuffer);
+            _computeShader.SetBuffer(kernelID, "_OutputBuffer", _outputBuffer);
+            _computeShader.SetBuffer(kernelID, "_FlatMatrix", _flatMatrixBuffer);
+
+            _inputBuffer.SetData(inLayer._neurons);
+            for (int oIndex = 0; oIndex < outLen; oIndex++) {
+                _computeShader.Dispatch(kernelID, oIndex, 1, 1);
             }
 
-            weightedSum /= inLen;
+            _outputBuffer.GetData(outLayer._neurons);
+        } else {
+            for (int oIndex = 0; oIndex < outLen; oIndex++) {
+                float weightedSum = 0f;
+                for (int iIndex = 0; iIndex < inLen; iIndex++) {
+                    weightedSum += inLayer._neurons[iIndex] * networkWeightsSingle.GetValue(iIndex, oIndex);
+                }
 
-            weightedSum = ActivationFunc(weightedSum);
-            outLayer._neurons[oIndex] = weightedSum;
-            max = Mathf.Max(max, weightedSum);
-            min = Mathf.Min(min, weightedSum);
+                weightedSum /= inLen;
+
+                weightedSum = ActivationFunc(weightedSum);
+                outLayer._neurons[oIndex] = weightedSum;
+            }
+        }
+
+        //normlize
+        for (int oIndex = 0; oIndex < outLen; oIndex++) {
+            max = Mathf.Max(max, outLayer._neurons[oIndex]);
+            min = Mathf.Min(min, outLayer._neurons[oIndex]);
         }
 
         float deltaSize = max - min;
@@ -83,6 +118,8 @@ public class NeuralNetwork {
         for (int oIndex = 0; oIndex < outLen; oIndex++) {
             outLayer._neurons[oIndex] = (outLayer._neurons[oIndex] / deltaSize) + offset;
         }
+
+        Dispose();
     }
 
     private float ActivationFunc(float weightedSum) {
@@ -92,5 +129,8 @@ public class NeuralNetwork {
         return cos;
     }
 
-    
+    public void Dispose() {
+        _inputBuffer.Dispose();
+        _outputBuffer.Dispose();
+    }
 }

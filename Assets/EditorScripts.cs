@@ -67,4 +67,8 @@ public class EditorScripts : MonoBehaviour
     static void StopTrainig() {
         _instance._trainer.StopTraining();
     }
+
+    private void OnDestroy() {
+        _neuralNetwork.Dispose();
+    }
 }
