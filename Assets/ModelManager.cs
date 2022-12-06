@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class ModelManager : MonoBehaviour {
-    public Model[] TrainModels;
+    
     private Model[] _trainModelsA;
     private Model[] _trainModelsB;
 
-    private Model[] _trainModels;
+    public Model[] TrainModels;
     private Model[] _breedModels;
 
     private float[] _normlizedScores;
 
 
-    public void Setup(int sizeOfGen) {
+    public void Setup(int sizeOfGen, NeuralNetwork template) {
 
         _normlizedScores = new float[sizeOfGen];
 
@@ -21,19 +21,15 @@ public class ModelManager : MonoBehaviour {
         _trainModelsA = new Model[sizeOfGen];
         _trainModelsB = new Model[sizeOfGen];
         for (int i = 0; i < sizeOfGen; i++) {
-            _trainModelsA[i] = EmptyModel(_neuralNetwork);
-            _trainModelsB[i] = EmptyModel(_neuralNetwork);
-            TrainModels[i].Score = 0;
+            _trainModelsA[i] = EmptyModel(template);
+            _trainModelsB[i] = EmptyModel(template);
+            _trainModelsA[i].Score = 0;
             _trainModelsB[i].Score = 0;
         }
 
-        _trainModels = _trainModelsA;
+        TrainModels = _trainModelsA;
         _breedModels = _trainModelsB;
 }
-
-    public Model[] TrainModel {
-        get => _trainModels;
-    }
 
     private Model EmptyModel(NeuralNetwork network) {
         return new Model(network);
@@ -44,17 +40,17 @@ public class ModelManager : MonoBehaviour {
 
         //normlize score
         float totalScore = 0;
-        for (int i = 0; i < _trainModels.Length; i++) {
-            _normlizedScores[i] = _trainModels[i].Score;
+        for (int i = 0; i < TrainModels.Length; i++) {
+            _normlizedScores[i] = TrainModels[i].Score;
             totalScore += _normlizedScores[i];
         }
 
         if (totalScore == 0) {
-            for (int i = 0; i < _trainModels.Length; i++) {
+            for (int i = 0; i < TrainModels.Length; i++) {
                 _normlizedScores[i] = 1f;
             }
         } else {
-            for (int i = 0; i < _trainModels.Length; i++) {
+            for (int i = 0; i < TrainModels.Length; i++) {
                 _normlizedScores[i] /= totalScore;
             }
         }
@@ -72,11 +68,11 @@ public class ModelManager : MonoBehaviour {
             BreedModels(parent1Index, parent2Index, i);
         }
 
-        if (_trainModels == _trainModelsB) {
-            _trainModels = _trainModelsA;
+        if (TrainModels == _trainModelsB) {
+            TrainModels = _trainModelsA;
             _breedModels = _trainModelsB;
         } else {
-            _trainModels = _trainModelsB;
+            TrainModels = _trainModelsB;
             _breedModels = _trainModelsA;
         }
     }
@@ -97,9 +93,9 @@ public class ModelManager : MonoBehaviour {
 
     private void BreedModels(int parent1Index, int parent2Index, int targetIndex) {
 
-        Model parent1 = _trainModels[parent1Index];
-        Model parent2 = _trainModels[parent2Index];
-        Model target = _trainModels[targetIndex];
+        Model parent1 = TrainModels[parent1Index];
+        Model parent2 = TrainModels[parent2Index];
+        Model target = TrainModels[targetIndex];
 
         for (int w = 0; w < parent1.Weights.Length; w++) {
 

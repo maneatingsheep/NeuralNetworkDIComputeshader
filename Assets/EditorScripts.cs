@@ -44,11 +44,17 @@ public class EditorScripts : MonoBehaviour
         var data = _instance._inputDataManager.GetRandomImage(true);
 
         _instance._inputDisplayView.ShowImage(data);
-        _instance._neuralNetwork.SetModel(_instance._trainer.GetBestModel());
-        _instance._neuralNetwork.SetInput(data.Data);
-        int result = _instance._neuralNetwork.Run();
-        _instance._networkOutputDisaply.ShowOutput(result);
-        
+        Model bestModel = _instance._trainer.GetBestModel();
+        if (bestModel != null) {
+            _instance._neuralNetwork.SetModel(bestModel);
+            _instance._neuralNetwork.SetInput(data.Data);
+            int result = _instance._neuralNetwork.Run();
+            _instance._networkOutputDisaply.ShowOutput(result);
+        } else {
+            _instance._networkOutputDisaply.ShowOutput(-1);
+        }
+
+
 
     }
 

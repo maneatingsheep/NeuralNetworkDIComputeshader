@@ -25,7 +25,7 @@ public class Trainer {
     internal async void Train() {
 
         _halt = false;
-        _modelManager.Setup(SIZE_OF_GEN);
+        _modelManager.Setup(SIZE_OF_GEN, _neuralNetwork);
 
         await StartTraining();
     }
@@ -84,6 +84,6 @@ public class Trainer {
     }
 
     internal Model GetBestModel() {
-        return (_bestModelIndex > -1)?_modelManager.TrainModels[_bestModelIndex]: null; 
+        return (_modelManager.TrainModels != null && _bestModelIndex > -1)?_modelManager.TrainModels[_bestModelIndex]: null; 
     }
 }

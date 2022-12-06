@@ -54,23 +54,34 @@ public class NeuralNetwork {
         return maxIndex;
     }
 
-    private void CalculateLayer(NetworkWeightsSingle networkWeightsSingle, NetworkLayer inLayer, NetworkLayer outLayer) {
+    private void CalculateLayer(WeightMatrix networkWeightsSingle, NetworkLayer inLayer, NetworkLayer outLayer) {
         int inLen = inLayer._neurons.Length;
         int outLen = outLayer._neurons.Length;
+
+        float max = 0f;
+        float min = float.MaxValue;
 
         for (int oIndex = 0; oIndex < outLen; oIndex++) {
             outLayer._neurons[oIndex] = 0f;
 
             float weightedSum = 0f;
             for (int iIndex = 0; iIndex < inLen; iIndex++) {
-                weightedSum += inLayer._neurons[iIndex] * networkWeightsSingle.Weights[iIndex, oIndex];   
+                weightedSum += inLayer._neurons[iIndex] * networkWeightsSingle.Matrix[iIndex, oIndex];   
             }
 
             weightedSum /= inLen;
 
             weightedSum = ActivationFunc(weightedSum);
             outLayer._neurons[oIndex] = weightedSum;
+            max = Mathf.Max(max, weightedSum);
+            min = Mathf.Min(min, weightedSum);
+        }
 
+        float deltaSize = max - min;
+        float offset = 1f - (max / deltaSize);
+
+        for (int oIndex = 0; oIndex < outLen; oIndex++) {
+            outLayer._neurons[oIndex] = (outLayer._neurons[oIndex] / deltaSize) + offset;
         }
     }
 
