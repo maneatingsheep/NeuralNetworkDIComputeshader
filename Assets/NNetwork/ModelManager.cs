@@ -12,6 +12,8 @@ public class ModelManager : MonoBehaviour {
 
     private float[] _normlizedScores;
 
+    private const float MUTATION_CHANCE = 0.01f;
+    private const float MUTATION_RATE = 0.001f;
 
     public void Setup(int sizeOfGen, NeuralNetwork template) {
 
@@ -101,20 +103,28 @@ public class ModelManager : MonoBehaviour {
 
             int xSize = parent1.Weights[w].SizeX;
             int ySize = parent1.Weights[w].SizeY;
-            
+
             for (int i = 0; i < xSize; i++) {
                 for (int j = 0; j < ySize; j++) {
                     float p1Val = parent1.Weights[w].GetValue(i, j);
                     float p2Val = parent2.Weights[w].GetValue(i, j);
-                    //select one random
-                    float selection = (Random.value > 0.5f) ? p1Val : p2Val;
-                    //mutation
-                    selection = (Random.value > 0.01f) ? selection : Mathf.Clamp((selection + (Random.value - 0.5f) * 0.001f), 0f, 1f);
 
-                    target.Weights[w].SetValue(selection,i, j);
+                    float nextVal = GenerateNextValue(p1Val, p2Val);
+           
+                    target.Weights[w].SetValue(nextVal, i, j);
                 }
             }
+            target.Weights[w].Bias = GenerateNextValue(parent1.Weights[w].Bias, parent2.Weights[w].Bias);
         }
-        
+    }
+
+    private float GenerateNextValue(float p1, float p2) {
+        //select one random
+        float selection = (Random.value > 0.5f) ? p1 : p2;
+        //mutation
+        if (Random.value < MUTATION_CHANCE) {
+            selection += (Random.value - 0.5f) * MUTATION_RATE;
+        }
+        return selection;
     }
 }

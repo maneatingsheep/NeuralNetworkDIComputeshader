@@ -11,7 +11,6 @@ public class EditorScripts : MonoBehaviour
     private NeuralNetwork _neuralNetwork;
     private NetworkOutputDisaply _networkOutputDisaply;
     private Trainer _trainer;
-    private ModelManager _modelManager;
     private static EditorScripts _instance;
 
     private void Awake() {
@@ -30,9 +29,12 @@ public class EditorScripts : MonoBehaviour
         _neuralNetwork = neuralNetwork;
         _networkOutputDisaply = networkOutputDisaply;
         _trainer = trainer;
-        _modelManager = modelManager;
+
     }
 
+    void Start() {
+        _instance._trainer.Init();
+    }
 
     [MenuItem("Cheats/Show Image")]
     static void ShowImage() {
@@ -58,14 +60,14 @@ public class EditorScripts : MonoBehaviour
 
     }
 
-    [MenuItem("Cheats/Train")]
-    static void Train() {
-        _instance._trainer.Train();
+    [MenuItem("Cheats/Setup")]
+    static void Setup() {
+        _instance._trainer.Init();
     }
 
-    [MenuItem("Cheats/Stop Training")]
-    static void StopTrainig() {
-        _instance._trainer.StopTraining();
+    [MenuItem("Cheats/Start Training")]
+    static void StartTraining() {
+        _instance._trainer.TrainGenCount(100);
     }
 
     private void OnDestroy() {

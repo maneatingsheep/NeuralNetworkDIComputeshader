@@ -1,0 +1,41 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+
+StructuredBuffer<float> _InputBuffer;
+RWStructuredBuffer<float> _OutputBuffer;
+StructuredBuffer<float> _FlatMatrix;
+
+uint _InLen;
+uint _OutLen;
+uint _Batch;
+
+
+float ActivationFunc(float weightedSum) {
+    float input = clamp(weightedSum, 0., 1.);
+    float cosOut = cos(input * 3.14159265f);
+    cosOut = 1 - ((cosOut * 0.5f) + 0.5f);
+    return cosOut;
+}
+
+[numthreads(64,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID){
+ 
+    float weightedSum = 0.;
+
+    int batchIndex = id.x;
+    
+    for (uint bCount = 0; bCount < _Batch; bCount++) {
+        int outIndex = batchIndex + bCount;
+        for (uint iIndex = 0; iIndex < _InLen; iIndex++) {
+            weightedSum += _InputBuffer[iIndex] * _FlatMatrix[iIndex * _OutLen + outIndex];
+        }
+
+        weightedSum /= _InLen;
+
+        weightedSum = ActivationFunc(weightedSum);
+        _OutputBuffer[outIndex] = weightedSum;
+    }
+}
+
+

@@ -1,0 +1,31 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+StructuredBuffer<float> _InBuffer;
+StructuredBuffer<float> _MatrixBuffer;
+RWStructuredBuffer<float> _OutBuffer;
+
+[numthreads(64,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    matrix <float, 1, 3> fMatrix;
+    vector <float, 3> inVector;
+    vector <float, 1> outVector;
+
+
+    for (int i = 0; i < 3; i++){
+        float f = _MatrixBuffer[id.x * 3 + i];
+        fMatrix[0][i] = f;
+    }
+
+    for (i = 0; i < 3; i++){
+        inVector[i] = _InBuffer[i];
+    } 
+
+    outVector = mul(fMatrix, inVector);
+
+    _OutBuffer[id.x] = outVector[0];
+      
+    
+
+}
