@@ -17,7 +17,10 @@ public class InputDataManager : MonoBehaviour
 
     private bool _isReady;
 
-    private void Start() {
+    private int _iamgeSize = 0;
+    
+
+    public void Init() {
         LoadData();
         _isReady = true;
     }
@@ -38,6 +41,8 @@ public class InputDataManager : MonoBehaviour
         int numberOfImages = images.ReadBigInt32();
         int width = images.ReadBigInt32();
         int height = images.ReadBigInt32();
+
+        _iamgeSize = width;
 
         DataImage[] result = new DataImage[numberOfImages];
 
@@ -70,9 +75,9 @@ public class InputDataManager : MonoBehaviour
         }
     }
 
-    public bool IsReady {
-        get => _isReady;
-    }
+    public bool IsReady { get => _isReady;}
+    
+    public int ImageSize { get => _iamgeSize;}
 }
 
 public class DataImage {

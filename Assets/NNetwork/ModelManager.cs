@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Zenject;
 
 public class ModelManager : MonoBehaviour {
     
@@ -10,23 +11,22 @@ public class ModelManager : MonoBehaviour {
     public Model[] TrainModels;
     private Model[] _breedModels;
 
-    private float[] _normlizedScores;
+    private SettingsConfig _settingsConfig;
 
-    private const float MUTATION_CHANCE = 0.01f;
-    private const float MUTATION_RATE = 0.001f;
+    [Inject]
+    private void Construct(SettingsConfig settingsConfig) {
+        _settingsConfig = settingsConfig;
+    }
 
     public void Setup(int sizeOfGen, NeuralNetwork template) {
-
-        _normlizedScores = new float[sizeOfGen];
-
 
         _trainModelsA = new Model[sizeOfGen];
         _trainModelsB = new Model[sizeOfGen];
         for (int i = 0; i < sizeOfGen; i++) {
             _trainModelsA[i] = EmptyModel(template);
             _trainModelsB[i] = EmptyModel(template);
-            _trainModelsA[i].Score = 0;
-            _trainModelsB[i].Score = 0;
+            _trainModelsA[i].Reset();
+            _trainModelsB[i].Reset();
         }
 
         TrainModels = _trainModelsA;
@@ -34,34 +34,17 @@ public class ModelManager : MonoBehaviour {
 }
 
     private Model EmptyModel(NeuralNetwork network) {
-        return new Model(network);
+        return new Model(network, _settingsConfig);
     }
 
 
     internal void BreedNextGen() {
 
-        //normlize score
-        float totalScore = 0;
-        for (int i = 0; i < TrainModels.Length; i++) {
-            _normlizedScores[i] = TrainModels[i].Score;
-            totalScore += _normlizedScores[i];
-        }
-
-        if (totalScore == 0) {
-            for (int i = 0; i < TrainModels.Length; i++) {
-                _normlizedScores[i] = 1f;
-            }
-        } else {
-            for (int i = 0; i < TrainModels.Length; i++) {
-                _normlizedScores[i] /= totalScore;
-            }
-        }
-
         //find parents and breed
         for (int i = 0; i < _breedModels.Length; i++) {
             
             int parent1Index = FindParentIndex();
-            int parent2Index = 0;
+            int parent2Index;
             
             do {
                 parent2Index = FindParentIndex();
@@ -70,6 +53,11 @@ public class ModelManager : MonoBehaviour {
             BreedModels(parent1Index, parent2Index, i);
         }
 
+        FlipTrainingBreeding();
+        
+    }
+
+    private void FlipTrainingBreeding() {
         if (TrainModels == _trainModelsB) {
             TrainModels = _trainModelsA;
             _breedModels = _trainModelsB;
@@ -79,12 +67,13 @@ public class ModelManager : MonoBehaviour {
         }
     }
 
+    
 
     private int FindParentIndex() {
         float rand = Random.value;
         float count = 0;
-        for (int i = 0; i < _normlizedScores.Length; i++) {
-            count += _normlizedScores[i];
+        for (int i = 0; i < TrainModels.Length; i++) {
+            count += TrainModels[i].Fitness;
             if (count >= rand) {
                 return i;
             }
@@ -97,15 +86,15 @@ public class ModelManager : MonoBehaviour {
 
         Model parent1 = TrainModels[parent1Index];
         Model parent2 = TrainModels[parent2Index];
-        Model target = TrainModels[targetIndex];
+        Model target = _breedModels[targetIndex];
 
         for (int w = 0; w < parent1.Weights.Length; w++) {
 
             int xSize = parent1.Weights[w].SizeX;
             int ySize = parent1.Weights[w].SizeY;
 
-            for (int i = 0; i < xSize; i++) {
-                for (int j = 0; j < ySize; j++) {
+            for (int j = 0; j < ySize; j++) {
+                for (int i = 0; i < xSize; i++) {
                     float p1Val = parent1.Weights[w].GetValue(i, j);
                     float p2Val = parent2.Weights[w].GetValue(i, j);
 
@@ -113,8 +102,8 @@ public class ModelManager : MonoBehaviour {
            
                     target.Weights[w].SetValue(nextVal, i, j);
                 }
+                target.Weights[w].Biases[j] = GenerateNextValue(parent1.Weights[w].Biases[j], parent2.Weights[w].Biases[j]);
             }
-            target.Weights[w].Bias = GenerateNextValue(parent1.Weights[w].Bias, parent2.Weights[w].Bias);
         }
     }
 
@@ -122,8 +111,8 @@ public class ModelManager : MonoBehaviour {
         //select one random
         float selection = (Random.value > 0.5f) ? p1 : p2;
         //mutation
-        if (Random.value < MUTATION_CHANCE) {
-            selection += (Random.value - 0.5f) * MUTATION_RATE;
+        if (Random.value < _settingsConfig.MutationChance) {
+            selection += (Random.value - 0.5f) * _settingsConfig.MutationRate;
         }
         return selection;
     }

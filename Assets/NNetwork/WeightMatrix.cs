@@ -4,7 +4,7 @@ using UnityEngine;
 public class WeightMatrix {
 
     private float[] _flatMatrix;
-    public float Bias;
+    public float[] Biases;
 
     public int SizeX;
     public int SizeY;
@@ -17,6 +17,11 @@ public class WeightMatrix {
             for (int j = 0; j < sizeY; j++) {
                 _flatMatrix[i * SizeY + j] = Random.value - 0.5f;
             }
+        }
+
+        Biases = new float[sizeY];
+        for (int i = 0; i < sizeY; i++) {
+            Biases[i] = Random.value - 0.5f;
         }
     }
 
