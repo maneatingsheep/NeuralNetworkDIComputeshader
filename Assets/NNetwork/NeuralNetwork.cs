@@ -121,13 +121,13 @@ public class NeuralNetwork {
             }
         }
 
-        if (isLastLayer) {
+        if (isLastLayer && outLayer._neurons.Length > 1) {
             NormlizeOutput(outLayer);
         }
     }
 
     private void NormlizeOutput(NetworkLayer outLayer) {
-        float max = 0f;
+        float max = float.MinValue;
         float min = float.MaxValue;
         //normlize
         for (int oIndex = 0; oIndex < outLayer._neurons.Length; oIndex++) {
@@ -145,7 +145,11 @@ public class NeuralNetwork {
 
     private float ActivationFunc(float weightedSum) {
         //tanh
-        return 2 * Sigmoid(2 * weightedSum) - 1f;
+        //return 2 * Sigmoid(2 * weightedSum) - 1f;
+        //linear
+        //return weightedSum;
+        //RELU
+        return Mathf.Max(0, weightedSum);
     }
 
     private float Sigmoid(float x) {

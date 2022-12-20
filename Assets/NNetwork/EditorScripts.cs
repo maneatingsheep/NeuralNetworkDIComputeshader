@@ -6,11 +6,6 @@ using Zenject;
 
 public class EditorScripts : MonoBehaviour
 {
-    private InputDataManager _inputDataManager;
-    private InputDisplayView _inputDisplayView;
-    private NeuralNetwork _neuralNetwork;
-    private NetworkOutputDisaply _networkOutputDisaply;
-    private Trainer _trainer;
     private static EditorScripts _instance;
 
     private void Awake() {
@@ -18,16 +13,7 @@ public class EditorScripts : MonoBehaviour
     }
 
     [Inject]
-    public void Construct(InputDataManager inputDataManager, 
-        InputDisplayView inputDisplayView, 
-        NetworkOutputDisaply networkOutputDisaply, 
-        NeuralNetwork neuralNetwork,
-        Trainer trainer) {
-        _inputDataManager = inputDataManager;
-        _inputDisplayView = inputDisplayView;
-        _neuralNetwork = neuralNetwork;
-        _networkOutputDisaply = networkOutputDisaply;
-        _trainer = trainer;
+    public void Construct() { 
 
     }
 

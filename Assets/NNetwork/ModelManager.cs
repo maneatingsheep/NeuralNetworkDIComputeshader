@@ -5,13 +5,13 @@ using Zenject;
 
 public class ModelManager : MonoBehaviour {
     
-    private Model[] _trainModelsA;
-    private Model[] _trainModelsB;
-
-    public Model[] TrainModels;
-    private Model[] _breedModels;
+    private Model[][] _trainModels;
 
     private SettingsConfig _settingsConfig;
+
+    private int _trainIndex = 0;
+
+    private float _mutationChance;
 
     [Inject]
     private void Construct(SettingsConfig settingsConfig) {
@@ -20,18 +20,21 @@ public class ModelManager : MonoBehaviour {
 
     public void Setup(int sizeOfGen, NeuralNetwork template) {
 
-        _trainModelsA = new Model[sizeOfGen];
-        _trainModelsB = new Model[sizeOfGen];
-        for (int i = 0; i < sizeOfGen; i++) {
-            _trainModelsA[i] = EmptyModel(template);
-            _trainModelsB[i] = EmptyModel(template);
-            _trainModelsA[i].Reset();
-            _trainModelsB[i].Reset();
+        _trainModels = new Model[2][];
+        for (int i = 0; i < _trainModels.Length; i++) {
+            _trainModels[i] = new Model[sizeOfGen];
+            for (int j = 0; j < sizeOfGen; j++) {
+                _trainModels[i][j] = EmptyModel(template);
+                _trainModels[i][j].Reset();
+            }
         }
 
-        TrainModels = _trainModelsA;
-        _breedModels = _trainModelsB;
-}
+        _mutationChance = _settingsConfig.AvgMutatePerSpeciment / _settingsConfig.GenerationSize;
+
+        int totalWeights = _trainModels[0][0].GetWeightCount();
+        _mutationChance /= (float)totalWeights;
+    }
+
 
     private Model EmptyModel(NeuralNetwork network) {
         return new Model(network, _settingsConfig);
@@ -41,7 +44,7 @@ public class ModelManager : MonoBehaviour {
     internal void BreedNextGen() {
 
         //find parents and breed
-        for (int i = 0; i < _breedModels.Length; i++) {
+        for (int i = 0; i < _trainModels[0].Length; i++) {
             
             int parent1Index = FindParentIndex();
             int parent2Index;
@@ -58,13 +61,7 @@ public class ModelManager : MonoBehaviour {
     }
 
     private void FlipTrainingBreeding() {
-        if (TrainModels == _trainModelsB) {
-            TrainModels = _trainModelsA;
-            _breedModels = _trainModelsB;
-        } else {
-            TrainModels = _trainModelsB;
-            _breedModels = _trainModelsA;
-        }
+        _trainIndex = 1 - _trainIndex;
     }
 
     
@@ -86,24 +83,28 @@ public class ModelManager : MonoBehaviour {
 
         Model parent1 = TrainModels[parent1Index];
         Model parent2 = TrainModels[parent2Index];
-        Model target = _breedModels[targetIndex];
+        Model target = _trainModels[1 - _trainIndex][targetIndex];
 
         for (int w = 0; w < parent1.Weights.Length; w++) {
 
             int xSize = parent1.Weights[w].SizeX;
             int ySize = parent1.Weights[w].SizeY;
-
-            for (int j = 0; j < ySize; j++) {
-                for (int i = 0; i < xSize; i++) {
-                    float p1Val = parent1.Weights[w].GetValue(i, j);
-                    float p2Val = parent2.Weights[w].GetValue(i, j);
+            
+            for (int i = 0; i < xSize; i++) {
+                for (int o = 0; o < ySize; o++) {
+                    float p1Val = parent1.Weights[w].GetValue(i, o);
+                    float p2Val = parent2.Weights[w].GetValue(i, o);
 
                     float nextVal = GenerateNextValue(p1Val, p2Val);
            
-                    target.Weights[w].SetValue(nextVal, i, j);
+                    target.Weights[w].SetValue(nextVal, i, o);
                 }
-                target.Weights[w].Biases[j] = GenerateNextValue(parent1.Weights[w].Biases[j], parent2.Weights[w].Biases[j]);
             }
+
+            for (int o = 0; o < ySize; o++) {
+                target.Weights[w].Biases[o] = GenerateNextValue(parent1.Weights[w].Biases[o], parent2.Weights[w].Biases[o]);
+            }
+
         }
     }
 
@@ -111,9 +112,14 @@ public class ModelManager : MonoBehaviour {
         //select one random
         float selection = (Random.value > 0.5f) ? p1 : p2;
         //mutation
-        if (Random.value < _settingsConfig.MutationChance) {
-            selection += (Random.value - 0.5f) * _settingsConfig.MutationRate;
+        if (Random.value < _mutationChance) {
+            selection += (Random.value - 0.5f) * _settingsConfig.MutationStrength;
         }
         return selection;
     }
+
+    public Model[] TrainModels {
+        get => _trainModels[_trainIndex];
+    }
+
 }

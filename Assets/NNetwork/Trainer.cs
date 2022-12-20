@@ -42,10 +42,33 @@ public class Trainer {
         await RunAllNetworks();
 
         _verifier.SetFitness(_modelManager.TrainModels);
+        DistributrFittness();
 
         AnalyzeResults();
         _currentGen++;
 
+    }
+
+    private void DistributrFittness() {
+        float totalFitt = 0;
+        for (int i = 0; i < _modelManager.TrainModels.Length; i++) {
+            totalFitt += _modelManager.TrainModels[i].Fitness;
+        }
+
+        if (totalFitt == 0) {
+            for (int i = 0; i < _modelManager.TrainModels.Length; i++) {
+                _modelManager.TrainModels[i].Fitness = 1f;
+            }
+
+            return;
+        }
+
+        float[] fitness = new float[_modelManager.TrainModels.Length];
+
+        for (int i = 0; i < _modelManager.TrainModels.Length; i++) {
+            _modelManager.TrainModels[i].Fitness /= totalFitt;
+            fitness[i] = _modelManager.TrainModels[i].Fitness;
+        }
     }
 
     private async Task RunAllNetworks() {
@@ -53,23 +76,27 @@ public class Trainer {
             _modelManager.TrainModels[m].Reset();
         }
 
+        
+
         for (int i = 0; i < _settingsConfig.NumberOfAttemptsPerTrain; i++) {
-
-            var inputs = _verifier.SetNewVerefication(true);
-            _neuralNetwork.SetInput(inputs);
-
-            for (int m = 0; m < _modelManager.TrainModels.Length; m++) {
-
-                _neuralNetwork.SetModel(_modelManager.TrainModels[m]);
-                await _neuralNetwork.Run();
-
-                float score = _verifier.Verify(_neuralNetwork.OutputLayer._neurons, false);
-
-                _modelManager.TrainModels[m].Score += score;
+            for (int j = 0; j < _verifier.Repetitions; j++) {
 
 
+                var inputs = _verifier.SetNewVerefication(true, j, i);
+                _neuralNetwork.SetInput(inputs);
+
+                for (int m = 0; m < _modelManager.TrainModels.Length; m++) {
+
+                    _neuralNetwork.SetModel(_modelManager.TrainModels[m]);
+                    await _neuralNetwork.Run();
+
+                    float score = _verifier.Verify(_neuralNetwork.OutputLayer._neurons);
+
+                    _modelManager.TrainModels[m].Score += score / _settingsConfig.NumberOfAttemptsPerTrain;
+
+
+                }
             }
-
         }
     }
 

@@ -8,8 +8,8 @@ public class SettingsConfig : ScriptableObject {
     
     public int NumOfHiddenLayers;
     public int HiddenLayerSize;
-    public float MutationChance;
-    public float MutationRate;
+    public float MutationStrength;
+    public float AvgMutatePerSpeciment;
 
     public int NumberOfAttemptsPerTrain;
     public int GenerationSize;

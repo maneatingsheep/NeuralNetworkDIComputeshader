@@ -7,10 +7,11 @@ public interface IVerifier {
 
     int GetInputSize { get; }
     int GetOtputSize { get; }
+    int Repetitions { get; }
 
-    float Verify(float[] networkResult, bool doVisualize);
-    float[] SetNewVerefication(bool isTraining);
+    float Verify(float[] networkResult);
+    float[] SetNewVerefication(bool isTraining, int repetition, int attempt);
 
     void SetFitness(Model[] models);
-    
+    void VisualizeResult();
 }

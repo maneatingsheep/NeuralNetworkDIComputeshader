@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class InputDisplayView : MonoBehaviour
+public class DDNetInputView : MonoBehaviour
 {
 
     [SerializeField] private TextMeshProUGUI _text;

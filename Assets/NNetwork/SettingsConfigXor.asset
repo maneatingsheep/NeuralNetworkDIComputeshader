@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: SettingsConfigXor
   m_EditorClassIdentifier: 
   NumOfHiddenLayers: 1
-  HiddenLayerSize: 2
-  MutationChance: 0.01
-  MutationRate: 0.01
-  NumberOfAttemptsPerTrain: 20
-  GenerationSize: 20
-  GenerationsToRun: 1
+  HiddenLayerSize: 3
+  MutationStrength: 0.001
+  AvgMutatePerSpeciment: 20
+  NumberOfAttemptsPerTrain: 1
+  GenerationSize: 100
+  GenerationsToRun: 200

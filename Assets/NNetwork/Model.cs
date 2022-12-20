@@ -1,3 +1,5 @@
+using System;
+
 public class Model 
 {
     public float Score;
@@ -20,5 +22,14 @@ public class Model
     public void Reset() {
         Score = 0;
         Fitness = 0f;
+    }
+
+    internal int GetWeightCount() {
+        int count = 0;
+        for (int i = 0; i < Weights.Length; i++) {
+            count += Weights[i].SizeX * Weights[i].SizeY;
+        }
+
+        return count;
     }
 }

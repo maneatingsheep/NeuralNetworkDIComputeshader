@@ -10,40 +10,43 @@ public class FlowMaster : MonoBehaviour
     private SettingsConfig _settingsConfig;
     private IVerifier _verifier;
     private NeuralNetwork _neuralNetwork;
-    private NetworkOutputDisaply _networkOutputDisaply;
 
-    private bool _doRun = true;
+    private bool _doRun = false;
 
     [Inject]
-    public void Construct(InputDisplayView inputDisplayView,
-        NetworkOutputDisaply networkOutputDisaply,
-        NeuralNetwork neuralNetwork,
+    public void Construct(NeuralNetwork neuralNetwork,
         Trainer trainer,
         SettingsConfig settingsConfig,
         IVerifier verifier) {
         _neuralNetwork = neuralNetwork;
-        _networkOutputDisaply = networkOutputDisaply;
         _trainer = trainer;
         _settingsConfig = settingsConfig;
         _verifier = verifier;
     }
 
     void Start() {
+
         _verifier.Init();
         _neuralNetwork.Init(_verifier.GetInputSize, _verifier.GetOtputSize);
         _trainer.Init();
+
     }
 
 
     public async void StartTrain() {
+        if (_doRun) return;
+
         _doRun = true;
         for (int i = 0; i < _settingsConfig.GenerationsToRun; i++) {
             await _trainer.TrainOneGen();
+            ShowImage();
             await Task.Yield();
             if (!_doRun) {
                 break;
             }
         }
+        _doRun = false;
+
     }
 
     public void StopTrain() {
@@ -52,14 +55,17 @@ public class FlowMaster : MonoBehaviour
 
     public async void ShowImage() {
 
-        var input = _verifier.SetNewVerefication(false);
-        
         Model bestModel = _trainer.GetBestModel();
         _neuralNetwork.SetModel(bestModel);
-        _neuralNetwork.SetInput(input);
-        await _neuralNetwork.Run();
 
-        _verifier.Verify(_neuralNetwork.OutputLayer._neurons, true);
+        for (int i = 0; i < _verifier.Repetitions; i++) {
+            var input = _verifier.SetNewVerefication(false, i, 0);
+            _neuralNetwork.SetInput(input);
+            await _neuralNetwork.Run();
+            _verifier.Verify(_neuralNetwork.OutputLayer._neurons);
+        }
+
+        _verifier.VisualizeResult();
     }
 
     private void OnDestroy() {

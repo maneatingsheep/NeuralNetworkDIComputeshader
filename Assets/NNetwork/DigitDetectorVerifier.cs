@@ -1,20 +1,21 @@
 ﻿using System;
 using UnityEngine;
 
-public class DigitDetector : IVerifier {
+public class DigitDetectorVerifier : IVerifier {
     private InputDataManager _inputDataManager;
-    InputDisplayView _inputDisplayView;
-    private NetworkOutputDisaply _networkOutputDisaply;
+    DDNetInputView _inputDisplayView;
+    private DDNetOutputView _networkOutputDisaply;
     private SettingsConfig _settingsConfig;
 
     private int _imageSize;
     private int _outputCount = 10;
     private DataImage _image;
     private float[] _networkInput;
+    private int _resultIndex;
 
-    public DigitDetector(InputDataManager inputDataManager,
-        InputDisplayView inputDisplayView,
-        NetworkOutputDisaply networkOutputDisaply,
+    public DigitDetectorVerifier(InputDataManager inputDataManager,
+        DDNetInputView inputDisplayView,
+        DDNetOutputView networkOutputDisaply,
         SettingsConfig settingsConfig) {
         _inputDataManager = inputDataManager;
         _inputDisplayView = inputDisplayView;
@@ -28,7 +29,7 @@ public class DigitDetector : IVerifier {
         _networkInput = new float[_imageSize * _imageSize];
     }
 
-    public float[] SetNewVerefication(bool isTraining) {
+    public float[] SetNewVerefication(bool isTraining, int repetition, int attempt) {
         _image = _inputDataManager.GetRandomImage(isTraining);
 
         for (int i = 0; i < _inputDataManager.ImageSize; i++) {
@@ -40,13 +41,13 @@ public class DigitDetector : IVerifier {
         return _networkInput;
     }
 
-    public float Verify(float[] networkResult, bool doVisualize) {
+    public float Verify(float[] networkResult) {
 
         float score = 0;
         int answer = _image.Label;
 
         float max = float.MinValue;
-        int maxIndex = 0;
+        _resultIndex = 0;
 
         for (int i = 0; i < networkResult.Length; i++) {
             if (i == answer) {
@@ -57,21 +58,17 @@ public class DigitDetector : IVerifier {
 
             if (networkResult[i] > max) {
                 max = networkResult[i];
-                maxIndex = i;
+                _resultIndex = i;
             }
         }
 
-
-        if (doVisualize) {
-            RenderVerefications(maxIndex);
-        }
 
         return score;
     }
 
     private void RenderVerefications(int result) {
-
-        _networkOutputDisaply.ShowOutput(result);
+        (_networkOutputDisaply as DDNetOutputView).SetResult(result);
+        _networkOutputDisaply.ShowOutput();
         _inputDisplayView.ShowImage(_image, _imageSize);
     }
 
@@ -85,24 +82,15 @@ public class DigitDetector : IVerifier {
             models[i].Fitness = Math.Max(0, models[i].Fitness);
         }
 
-        float totalScore = 0;
-        for (int i = 0; i < models.Length; i++) {
-            totalScore += models[i].Fitness;
-        }
+    }
 
-        if (totalScore == 0) {
-            for (int i = 0; i < models.Length; i++) {
-                models[i].Fitness = 1f;
-            }
-        } else {
-            for (int i = 0; i < models.Length; i++) {
-                models[i].Fitness /= totalScore;
-            }
-        }
+    public void VisualizeResult() {
+         RenderVerefications(_resultIndex);
     }
 
     int IVerifier.GetInputSize => _imageSize * _imageSize;
 
     int IVerifier.GetOtputSize => _outputCount;
 
+    public int Repetitions => 1;
 }
