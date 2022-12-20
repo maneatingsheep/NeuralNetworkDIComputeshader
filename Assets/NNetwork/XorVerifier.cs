@@ -33,8 +33,7 @@ public class XorVerifier : IVerifier {
 
     public void SetFitness(Model[] models) {
         foreach (var model in models) {
-            //model.Fitness = Mathf.Clamp(model.Score, 0, 1);
-            model.Fitness = model.Score / Repetitions;
+            model.Fitness = model.Score;
         }
     }
 
@@ -56,24 +55,23 @@ public class XorVerifier : IVerifier {
         float wantedResult = CalculateRes();
 
         _sampleGrid[_iIndex1, _iIndex2] = networkResult[0];
-        //_sampleGrid[_iIndex1, _iIndex2] = wantedResult;
+        //_sampleGrid[_iIndex1, _iIndex2] = wantedResult; //show wanted result
 
-
-        float score;
+        /*float score;
         if (wantedResult > 0.5f) {
-            score = networkResult[0];
+            score = Mathf.Clamp(networkResult[0], 0, 1);
         } else {
-            score = 1 - networkResult[0];
-        }
+            score = 1 - Mathf.Clamp(networkResult[0], 0, 1);
+        }*/
 
-        //score = Mathf.Clamp(score, 0, 1);
-
+        float score = -Mathf.Abs(wantedResult - networkResult[0]);
 
         return score;
     }
 
     private float CalculateRes() {
-        int operationRes = Mathf.RoundToInt(ins[0]) | Mathf.RoundToInt(ins[1]);
+        //int operationRes = Mathf.RoundToInt(ins[0]) | Mathf.RoundToInt(ins[1]);
+        float operationRes = ins[0] * ins[1];
         return (float)operationRes;
     }
 

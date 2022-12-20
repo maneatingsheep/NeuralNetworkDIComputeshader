@@ -13,7 +13,7 @@ public class Trainer {
 
     private bool _initialized;
     private int _bestModelIndex;
-
+    private float[] _fitness;
     public Trainer(ModelManager modelManager, NeuralNetwork neuralNetwork, SettingsConfig settingsConfig, IVerifier verifier) {
         _modelManager = modelManager;
         _neuralNetwork = neuralNetwork;
@@ -26,6 +26,7 @@ public class Trainer {
         _modelManager.Setup(_settingsConfig.GenerationSize, _neuralNetwork);
         _initialized = true;
         _currentGen = 0;
+        _fitness = new float[_modelManager.TrainModels.Length];
         Debug.Log("network setup complete");
 
     }
@@ -50,9 +51,16 @@ public class Trainer {
     }
 
     private void DistributrFittness() {
-        float totalFitt = 0;
+
         for (int i = 0; i < _modelManager.TrainModels.Length; i++) {
-            totalFitt += _modelManager.TrainModels[i].Fitness;
+            _fitness[i] = _modelManager.TrainModels[i].Fitness;
+        }
+
+        MathFunctions.NormlizeVector(_fitness);
+
+        float totalFitt = 0;
+        for (int i = 0; i < _fitness.Length; i++) {
+            totalFitt += _fitness[i];
         }
 
         if (totalFitt == 0) {
@@ -63,12 +71,10 @@ public class Trainer {
             return;
         }
 
-        float[] fitness = new float[_modelManager.TrainModels.Length];
-
         for (int i = 0; i < _modelManager.TrainModels.Length; i++) {
-            _modelManager.TrainModels[i].Fitness /= totalFitt;
-            fitness[i] = _modelManager.TrainModels[i].Fitness;
+            _modelManager.TrainModels[i].Fitness = _fitness[i] / totalFitt;
         }
+
     }
 
     private async Task RunAllNetworks() {
@@ -102,6 +108,7 @@ public class Trainer {
 
     private void AnalyzeResults() {
         _bestModelIndex = -1;
+        int worstModelIndex = -1;
         float avgScore = 0f;
 
         for (int i = 0; i < _modelManager.TrainModels.Length; i++) {
@@ -109,11 +116,14 @@ public class Trainer {
             if (_bestModelIndex == -1 || _modelManager.TrainModels[i].Score > _modelManager.TrainModels[_bestModelIndex].Score) {
                 _bestModelIndex = i;
             }
+            if (worstModelIndex == -1 || _modelManager.TrainModels[i].Score < _modelManager.TrainModels[worstModelIndex].Score) {
+                worstModelIndex = i;
+            }
         }
 
         avgScore /= _modelManager.TrainModels.Length;
 
-        Debug.Log($"completed gen {_currentGen} Best score: {_modelManager.TrainModels[_bestModelIndex].Score} Avg score: {avgScore}");
+        Debug.Log($"GEN: {_currentGen}. SCORES: {_modelManager.TrainModels[_bestModelIndex].Score}-{_modelManager.TrainModels[worstModelIndex].Score}. AVG: {avgScore}");
 
     }
 

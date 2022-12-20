@@ -47,6 +47,11 @@ public class ModelManager : MonoBehaviour {
         for (int i = 0; i < _trainModels[0].Length; i++) {
             
             int parent1Index = FindParentIndex();
+            if (parent1Index == -1) {
+                Debug.Log("no parent found");
+                return;
+            }
+
             int parent2Index;
             
             do {

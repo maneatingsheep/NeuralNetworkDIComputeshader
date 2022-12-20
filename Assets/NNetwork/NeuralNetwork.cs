@@ -114,47 +114,21 @@ public class NeuralNetwork {
                 //weightedSum /= inLen;
 
                 if (!isLastLayer) {
-                    weightedSum = ActivationFunc(weightedSum);
+                    weightedSum = MathFunctions.ActivationFunc(weightedSum);
                 }
                 weightedSum += weightMatrix.Biases[oIndex];
                 outLayer._neurons[oIndex] = weightedSum;
             }
         }
 
-        if (isLastLayer && outLayer._neurons.Length > 1) {
-            NormlizeOutput(outLayer);
+        if (isLastLayer && outLayer._neurons.Length > 2) {
+            MathFunctions.NormlizeVector(outLayer._neurons);
+
         }
     }
 
-    private void NormlizeOutput(NetworkLayer outLayer) {
-        float max = float.MinValue;
-        float min = float.MaxValue;
-        //normlize
-        for (int oIndex = 0; oIndex < outLayer._neurons.Length; oIndex++) {
-            max = Mathf.Max(max, outLayer._neurons[oIndex]);
-            min = Mathf.Min(min, outLayer._neurons[oIndex]);
-        }
 
-        float deltaSize = max - min;
-        float offset = 1f - (max / deltaSize);
-
-        for (int oIndex = 0; oIndex < outLayer._neurons.Length; oIndex++) {
-            outLayer._neurons[oIndex] = (outLayer._neurons[oIndex] / deltaSize) + offset;
-        }
-    }
-
-    private float ActivationFunc(float weightedSum) {
-        //tanh
-        //return 2 * Sigmoid(2 * weightedSum) - 1f;
-        //linear
-        //return weightedSum;
-        //RELU
-        return Mathf.Max(0, weightedSum);
-    }
-
-    private float Sigmoid(float x) {
-        return 1f / (1f + MathF.Pow(MathF.E, -x));
-    }
+   
 
     public void Dispose() {
         if (_inputBuffer != null) {

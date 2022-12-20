@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   NumOfHiddenLayers: 1
   HiddenLayerSize: 3
-  MutationStrength: 0.001
-  AvgMutatePerSpeciment: 20
+  MutationStrength: 0.01
+  AvgMutatePerSpeciment: 0
   NumberOfAttemptsPerTrain: 1
   GenerationSize: 100
-  GenerationsToRun: 200
+  GenerationsToRun: 1
