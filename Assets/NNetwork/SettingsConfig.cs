@@ -11,7 +11,6 @@ public class SettingsConfig : ScriptableObject {
     public float MutationStrength;
     public float AvgMutatePerSpeciment;
 
-    public int NumberOfAttemptsPerTrain;
     public int GenerationSize;
 
     public int GenerationsToRun;

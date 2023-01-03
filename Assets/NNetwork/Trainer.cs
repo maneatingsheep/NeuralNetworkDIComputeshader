@@ -36,11 +36,14 @@ public class Trainer {
             Debug.Log("not initialized");
             return;
         }
+
         if (_currentGen != 0) {
             _modelManager.BreedNextGen();
         }
 
-        await RunAllNetworks();
+        _modelManager.ResetScores();
+
+        await RunAllModels();
 
         _verifier.SetFitness(_modelManager.TrainModels);
         DistributrFittness();
@@ -48,6 +51,17 @@ public class Trainer {
         AnalyzeResults();
         _currentGen++;
 
+    }
+
+    private async Task RunAllModels() {
+        
+        _verifier.SetNewVerefication(true);
+
+        for (int m = 0; m < _modelManager.TrainModels.Length; m++) {
+            _neuralNetwork.SetModel(_modelManager.TrainModels[m]);
+            float score = await _verifier.Verify();
+            _modelManager.TrainModels[m].Score = score;
+        }
     }
 
     private void DistributrFittness() {
@@ -75,35 +89,6 @@ public class Trainer {
             _modelManager.TrainModels[i].Fitness = _fitness[i] / totalFitt;
         }
 
-    }
-
-    private async Task RunAllNetworks() {
-        for (int m = 0; m < _modelManager.TrainModels.Length; m++) {
-            _modelManager.TrainModels[m].Reset();
-        }
-
-        
-
-        for (int i = 0; i < _settingsConfig.NumberOfAttemptsPerTrain; i++) {
-            for (int j = 0; j < _verifier.Repetitions; j++) {
-
-
-                var inputs = _verifier.SetNewVerefication(true, j, i);
-                _neuralNetwork.SetInput(inputs);
-
-                for (int m = 0; m < _modelManager.TrainModels.Length; m++) {
-
-                    _neuralNetwork.SetModel(_modelManager.TrainModels[m]);
-                    await _neuralNetwork.Run();
-
-                    float score = _verifier.Verify(_neuralNetwork.OutputLayer._neurons);
-
-                    _modelManager.TrainModels[m].Score += score / _settingsConfig.NumberOfAttemptsPerTrain;
-
-
-                }
-            }
-        }
     }
 
     private void AnalyzeResults() {

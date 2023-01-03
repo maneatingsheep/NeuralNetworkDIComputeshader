@@ -21,7 +21,8 @@ public static class MathFunctions {
     }
 
     internal static float ActivationFunc(float weightedSum) {
-        return Tanh(weightedSum);
+        return Sigmoid(weightedSum);
+        //return Tanh(weightedSum);
         //return Relu(weightedSum);
     }
 

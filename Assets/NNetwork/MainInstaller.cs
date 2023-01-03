@@ -10,6 +10,7 @@ public class MainInstaller : MonoInstaller
     [SerializeField] private ComputeShader _computeshader;
     [SerializeField] private SettingsConfig settingsConfig;
     [SerializeField] private XorNetOutputView _xorNetOutputView;
+    [SerializeField] private FlowMaster _flowMaster;
     
 
     override public void InstallBindings() {
@@ -22,5 +23,6 @@ public class MainInstaller : MonoInstaller
         Container.Bind<SettingsConfig>().FromScriptableObject(settingsConfig).AsSingle().NonLazy();
         Container.Bind<IVerifier>().To(typeof(XorVerifier)).AsSingle().NonLazy();
         Container.Bind<XorNetOutputView>().FromInstance(_xorNetOutputView);
+        Container.Bind<FlowMaster>().FromInstance(_flowMaster);
     }
 }

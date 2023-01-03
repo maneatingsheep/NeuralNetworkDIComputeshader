@@ -12,10 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aae2ac7a4fed3a3418e8781294d6e1c6, type: 3}
   m_Name: SettingsConfigXor
   m_EditorClassIdentifier: 
-  NumOfHiddenLayers: 1
-  HiddenLayerSize: 3
+  NumOfHiddenLayers: 2
+  HiddenLayerSize: 10
   MutationStrength: 0.01
-  AvgMutatePerSpeciment: 0
-  NumberOfAttemptsPerTrain: 1
+  AvgMutatePerSpeciment: 1
   GenerationSize: 100
-  GenerationsToRun: 1
+  GenerationsToRun: 200

@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class NeuralNetwork {
 
-    public NetworkLayer InputLayer;
-    public NetworkLayer OutputLayer;
-    public NetworkLayer[] HiddenLayers;
+    public float[] InputLayer;
+    public float[] OutputLayer;
+    public float[][] HiddenLayers;
 
     private Model _model;
 
@@ -39,23 +39,17 @@ public class NeuralNetwork {
        */
 
 
-        InputLayer = new NetworkLayer(inputSize);
-        OutputLayer = new NetworkLayer(outputSize);
+        InputLayer = new float[inputSize];
+        OutputLayer = new float[outputSize];
 
-        HiddenLayers = new NetworkLayer[_settingsConfig.NumOfHiddenLayers];
+        HiddenLayers = new float[_settingsConfig.NumOfHiddenLayers][];
         for (int i = 0; i < _settingsConfig.NumOfHiddenLayers; i++) {
-            HiddenLayers[i] = new NetworkLayer(_settingsConfig.HiddenLayerSize);
+            HiddenLayers[i] = new float[_settingsConfig.HiddenLayerSize];
         }
     }
 
     internal void SetModel(Model model) {
         _model = model;
-    }
-
-    internal void SetInput(float[] data) {
-        for (int i = 0; i < data.Length; i++) {
-            InputLayer._neurons[i] = data[i];
-        }
     }
 
     internal async Task Run() {
@@ -75,9 +69,9 @@ public class NeuralNetwork {
     public int GetResultIndex() {
         float max = -1f;
         int maxIndex = 0;
-        for (int i = 0; i < OutputLayer._neurons.Length; i++) {
-            if (max < OutputLayer._neurons[i]) {
-                max = OutputLayer._neurons[i];
+        for (int i = 0; i < OutputLayer.Length; i++) {
+            if (max < OutputLayer[i]) {
+                max = OutputLayer[i];
                 maxIndex = i;
             }
         }
@@ -85,14 +79,14 @@ public class NeuralNetwork {
         return maxIndex;
     }
 
-    private void CalculateLayer(WeightMatrix weightMatrix, NetworkLayer inLayer, NetworkLayer outLayer, bool isLastLayer) {
+    private void CalculateLayer(WeightMatrix weightMatrix, float[] inLayer, float[] outLayer, bool isLastLayer) {
 
-        int inLen = inLayer._neurons.Length;
-        int outLen = outLayer._neurons.Length;
+        int inLen = inLayer.Length;
+        int outLen = outLayer.Length;
 
         if (_useGPU) {
 
-            _inputBuffer.SetData(inLayer._neurons);
+            _inputBuffer.SetData(inLayer);
             _flatMatrixBuffer.SetData(weightMatrix.GetFlatMatrix());
             int batch = 10;
             _computeShader.SetInt("_InLen", inLen);
@@ -101,28 +95,28 @@ public class NeuralNetwork {
 
             _computeShader.Dispatch(_kernelID, Mathf.CeilToInt((outLen / (float)batch) / 64f), 1, 1);
 
-            _outputBuffer.GetData(outLayer._neurons);
+            _outputBuffer.GetData(outLayer);
             
         } else {
             for (int oIndex = 0; oIndex < outLen; oIndex++) {
                 float weightedSum = 0f;
                 for (int iIndex = 0; iIndex < inLen; iIndex++) {
                     var weight = weightMatrix.GetValue(iIndex, oIndex);
-                    weightedSum += inLayer._neurons[iIndex] * weight;
+                    weightedSum += inLayer[iIndex] * weight;
                 }
 
                 //weightedSum /= inLen;
 
-                if (!isLastLayer) {
+                //if (!isLastLayer) {
                     weightedSum = MathFunctions.ActivationFunc(weightedSum);
-                }
+                //}
                 weightedSum += weightMatrix.Biases[oIndex];
-                outLayer._neurons[oIndex] = weightedSum;
+                outLayer[oIndex] = weightedSum;
             }
         }
 
-        if (isLastLayer && outLayer._neurons.Length > 2) {
-            MathFunctions.NormlizeVector(outLayer._neurons);
+        if (isLastLayer && outLayer.Length > 2) {
+            MathFunctions.NormlizeVector(outLayer);
 
         }
     }

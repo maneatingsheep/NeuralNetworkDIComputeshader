@@ -25,11 +25,11 @@ public class ModelManager : MonoBehaviour {
             _trainModels[i] = new Model[sizeOfGen];
             for (int j = 0; j < sizeOfGen; j++) {
                 _trainModels[i][j] = EmptyModel(template);
-                _trainModels[i][j].Reset();
+                _trainModels[i][j].ResetScores();
             }
         }
 
-        _mutationChance = _settingsConfig.AvgMutatePerSpeciment / _settingsConfig.GenerationSize;
+        _mutationChance = _settingsConfig.AvgMutatePerSpeciment;
 
         int totalWeights = _trainModels[0][0].GetWeightCount();
         _mutationChance /= (float)totalWeights;
@@ -64,6 +64,8 @@ public class ModelManager : MonoBehaviour {
         FlipTrainingBreeding();
         
     }
+
+    
 
     private void FlipTrainingBreeding() {
         _trainIndex = 1 - _trainIndex;
@@ -121,6 +123,12 @@ public class ModelManager : MonoBehaviour {
             selection += (Random.value - 0.5f) * _settingsConfig.MutationStrength;
         }
         return selection;
+    }
+
+    internal void ResetScores() {
+        for (int m = 0; m < TrainModels.Length; m++) {
+            TrainModels[m].ResetScores();
+        }
     }
 
     public Model[] TrainModels {

@@ -1,11 +1,10 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class XorVerifier : IVerifier {
 
     private XorNetOutputView _outputView;
+    private NeuralNetwork _neuralNetwork;
 
     private const int FIELD_SIZE = 4;
 
@@ -13,22 +12,14 @@ public class XorVerifier : IVerifier {
 
     public int GetOtputSize => 1;
 
-    public int Repetitions => FIELD_SIZE * FIELD_SIZE;
 
-
-    private float[,] _sampleGrid = new float[FIELD_SIZE, FIELD_SIZE];
-
-    private float[] ins;
-    private int _iIndex1;
-    private int _iIndex2;
-
-    public XorVerifier(XorNetOutputView xorNetOutputView) {
+    public XorVerifier(XorNetOutputView xorNetOutputView, NeuralNetwork neuralNetwork) {
         _outputView = xorNetOutputView;
+        _neuralNetwork = neuralNetwork;
     }
 
     public void Init() {
         _outputView.Init(FIELD_SIZE);
-        ins = new float[GetInputSize];
     }
 
     public void SetFitness(Model[] models) {
@@ -37,45 +28,76 @@ public class XorVerifier : IVerifier {
         }
     }
 
-    public float[] SetNewVerefication(bool isTraining, int repetition, int attempt) {
+    public void SetNewVerefication(bool isTraining) {
         
-        _iIndex1 = Mathf.FloorToInt((float)repetition / FIELD_SIZE);
-        _iIndex2 = repetition % FIELD_SIZE;
-
-        float iVal1 = _iIndex1 / (float)(FIELD_SIZE - 1);
-        float iVal2 = _iIndex2 / (float)(FIELD_SIZE - 1);
-
-        ins[0] = iVal1;
-        ins[1] = iVal2;
-        return ins;
     }
 
-    public float Verify(float[] networkResult) {
+    public async Task<float> Verify() {
 
-        float wantedResult = CalculateRes();
 
-        _sampleGrid[_iIndex1, _iIndex2] = networkResult[0];
-        //_sampleGrid[_iIndex1, _iIndex2] = wantedResult; //show wanted result
+        /*_neuralNetwork.InputLayer[0] = Random.value;
+        _neuralNetwork.InputLayer[1] = Random.value;
 
-        /*float score;
-        if (wantedResult > 0.5f) {
-            score = Mathf.Clamp(networkResult[0], 0, 1);
-        } else {
-            score = 1 - Mathf.Clamp(networkResult[0], 0, 1);
-        }*/
+        await _neuralNetwork.Run();
 
-        float score = -Mathf.Abs(wantedResult - networkResult[0]);
+        float wantedResult = CalculateWantedRes(_neuralNetwork.InputLayer);
+        float score = -Mathf.Abs(wantedResult - (Mathf.Clamp01(_neuralNetwork.OutputLayer[0])));*/
+
+        float score = 0f;
+
+        for (int i = 0; i < FIELD_SIZE; i++) {
+            for (int j = 0; j < FIELD_SIZE; j++) {
+                _neuralNetwork.InputLayer[0] = (float)i / (FIELD_SIZE - 1);
+                _neuralNetwork.InputLayer[1] = (float)j / (FIELD_SIZE - 1);
+
+                await _neuralNetwork.Run();
+
+                float wantedResult = CalculateWantedRes(_neuralNetwork.InputLayer);
+                score += -Mathf.Abs(wantedResult - (Mathf.Clamp01(_neuralNetwork.OutputLayer[0])));
+
+            }
+        }
 
         return score;
     }
 
-    private float CalculateRes() {
-        //int operationRes = Mathf.RoundToInt(ins[0]) | Mathf.RoundToInt(ins[1]);
-        float operationRes = ins[0] * ins[1];
+    private float CalculateWantedRes(float[] inputs) {
+        int operationRes = (Mathf.RoundToInt(inputs[0]) ^ Mathf.RoundToInt(inputs[1])) & 1;
+        //float operationRes = ins[0] * ins[1];
         return (float)operationRes;
     }
 
-    public void VisualizeResult() {
-        _outputView.ShowOutput(_sampleGrid);
+    public async Task VisualizeSample() {
+        var sampleGrid = new float[FIELD_SIZE, FIELD_SIZE];
+
+        for (int i = 0; i < FIELD_SIZE; i++) {
+            for (int j = 0; j < FIELD_SIZE; j++) {
+                _neuralNetwork.InputLayer[0] = (float)i / (FIELD_SIZE - 1);
+                _neuralNetwork.InputLayer[1] = (float)j / (FIELD_SIZE - 1);
+
+                await _neuralNetwork.Run();
+
+                sampleGrid[i, j] = _neuralNetwork.OutputLayer[0]; //show wanted result
+            }
+        }
+
+        _outputView.ShowOutput(sampleGrid);
+    }
+
+    public void VisualizeOutputReference() {
+        var sampleGrid = new float[FIELD_SIZE, FIELD_SIZE];
+
+        for (int i = 0; i < FIELD_SIZE; i++) {
+            for (int j = 0; j < FIELD_SIZE; j++) {
+
+                _neuralNetwork.InputLayer[0] = (float)i / (FIELD_SIZE - 1);
+                _neuralNetwork.InputLayer[1] = (float)j / (FIELD_SIZE - 1);
+
+                float wantedResult = CalculateWantedRes(_neuralNetwork.InputLayer);
+                sampleGrid[i, j] = wantedResult; //show wanted result
+            }
+
+        }
+        _outputView.ShowOutput(sampleGrid);
     }
 }

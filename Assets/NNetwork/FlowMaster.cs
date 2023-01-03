@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -33,40 +34,46 @@ public class FlowMaster : MonoBehaviour
     }
 
 
-    public async void StartTrain() {
+    internal async void StartTrain() {
         if (_doRun) return;
+        Debug.Log("Training Started");
+        await Task.Yield();
 
         _doRun = true;
         for (int i = 0; i < _settingsConfig.GenerationsToRun; i++) {
             await _trainer.TrainOneGen();
-            ShowImage();
+            await ShowBestOutputAsync();
             await Task.Yield();
             if (!_doRun) {
                 break;
             }
         }
+
+        Debug.Log("Training Complete");
+
         _doRun = false;
 
     }
 
-    public void StopTrain() {
+    internal void StopTrain() {
         _doRun = false;
     }
 
-    public async void ShowImage() {
+    internal void ShowCorrectOutput() {
+        _verifier.VisualizeOutputReference();
+    }
+
+    internal async void ShowBestOutput() {
+        await ShowBestOutputAsync();
+    }
+
+    private async Task ShowBestOutputAsync() {
 
         Model bestModel = _trainer.GetBestModel();
         _neuralNetwork.SetModel(bestModel);
-
-        for (int i = 0; i < _verifier.Repetitions; i++) {
-            var input = _verifier.SetNewVerefication(false, i, 0);
-            _neuralNetwork.SetInput(input);
-            await _neuralNetwork.Run();
-            _verifier.Verify(_neuralNetwork.OutputLayer._neurons);
-        }
-
-        _verifier.VisualizeResult();
+        await _verifier.VisualizeSample();
     }
+
 
     private void OnDestroy() {
         _neuralNetwork.Dispose();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class DigitDetectorVerifier : IVerifier {
@@ -6,91 +7,96 @@ public class DigitDetectorVerifier : IVerifier {
     DDNetInputView _inputDisplayView;
     private DDNetOutputView _networkOutputDisaply;
     private SettingsConfig _settingsConfig;
+    private NeuralNetwork _neuralNetwork;
 
     private int _imageSize;
     private int _outputCount = 10;
     private DataImage _image;
-    private float[] _networkInput;
     private int _resultIndex;
 
     public DigitDetectorVerifier(InputDataManager inputDataManager,
         DDNetInputView inputDisplayView,
         DDNetOutputView networkOutputDisaply,
-        SettingsConfig settingsConfig) {
+        SettingsConfig settingsConfig,
+        NeuralNetwork neuralNetwork) {
         _inputDataManager = inputDataManager;
         _inputDisplayView = inputDisplayView;
         _networkOutputDisaply = networkOutputDisaply;
         _settingsConfig = settingsConfig;
+        _neuralNetwork = neuralNetwork;
     }
 
     public void Init() {
         _inputDataManager.Init();
         _imageSize = _inputDataManager.ImageSize;
-        _networkInput = new float[_imageSize * _imageSize];
     }
 
-    public float[] SetNewVerefication(bool isTraining, int repetition, int attempt) {
+    public void SetNewVerefication(bool isTraining) {
         _image = _inputDataManager.GetRandomImage(isTraining);
 
         for (int i = 0; i < _inputDataManager.ImageSize; i++) {
             for (int j = 0; j < _inputDataManager.ImageSize; j++) {
-                _networkInput[i * _inputDataManager.ImageSize + j] = _image.Data[i, j];
+                _neuralNetwork.InputLayer[i * _inputDataManager.ImageSize + j] = _image.Data[i, j];
             }
         }
-
-        return _networkInput;
     }
 
-    public float Verify(float[] networkResult) {
+    public async Task<float> Verify() {
+
+
+        await _neuralNetwork.Run();
 
         float score = 0;
         int answer = _image.Label;
 
-        float max = float.MinValue;
-        _resultIndex = 0;
-
-        for (int i = 0; i < networkResult.Length; i++) {
+        for (int i = 0; i < _neuralNetwork.OutputLayer.Length; i++) {
             if (i == answer) {
-                score += networkResult[i];
+                score += _neuralNetwork.OutputLayer[i];
             } else {
-                score += 1f - networkResult[i];
-            }
-
-            if (networkResult[i] > max) {
-                max = networkResult[i];
-                _resultIndex = i;
-            }
+                score += 1f - _neuralNetwork.OutputLayer[i];
+            }            
         }
-
 
         return score;
     }
 
-    private void RenderVerefications(int result) {
-        (_networkOutputDisaply as DDNetOutputView).SetResult(result);
-        _networkOutputDisaply.ShowOutput();
-        _inputDisplayView.ShowImage(_image, _imageSize);
-    }
+   
 
     public void SetFitness(Model[] models) {
 
-        float maxPossibleScore = (float)_settingsConfig.NumberOfAttemptsPerTrain * _outputCount;
-
         for (int i = 0; i < models.Length; i++) {
             models[i].Fitness = models[i].Score;
-            models[i].Fitness -= maxPossibleScore / 2f;
+            models[i].Fitness -= _outputCount / 2f;
             models[i].Fitness = Math.Max(0, models[i].Fitness);
         }
-
     }
 
-    public void VisualizeResult() {
-         RenderVerefications(_resultIndex);
+    public async Task VisualizeSample() {
+        SetNewVerefication(false);
+        await _neuralNetwork.Run();
+
+        float max = float.MinValue;
+        _resultIndex = 0;
+
+        for (int i = 0; i < _neuralNetwork.OutputLayer.Length; i++) {
+            if (_neuralNetwork.OutputLayer[i] > max) {
+                max = _neuralNetwork.OutputLayer[i];
+                _resultIndex = i;
+            }
+        }
+
+        (_networkOutputDisaply as DDNetOutputView).SetResult(_resultIndex);
+        _networkOutputDisaply.ShowOutput();
+        _inputDisplayView.ShowImage(_image, _imageSize);
     }
+   
+
+    public void VisualizeOutputReference() {
+        throw new NotImplementedException();
+    }
+
 
     int IVerifier.GetInputSize => _imageSize * _imageSize;
 
     int IVerifier.GetOtputSize => _outputCount;
-
-    public int Repetitions => 1;
 }

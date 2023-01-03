@@ -1,17 +1,16 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+
+using System.Threading.Tasks;
 
 public interface IVerifier {
     void Init();
 
     int GetInputSize { get; }
     int GetOtputSize { get; }
-    int Repetitions { get; }
 
-    float Verify(float[] networkResult);
-    float[] SetNewVerefication(bool isTraining, int repetition, int attempt);
+    Task<float> Verify();
+    void SetNewVerefication(bool isTraining);
 
     void SetFitness(Model[] models);
-    void VisualizeResult();
+    Task VisualizeSample();
+    void VisualizeOutputReference();
 }

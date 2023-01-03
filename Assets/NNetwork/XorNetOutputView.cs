@@ -32,13 +32,13 @@ public class XorNetOutputView : MonoBehaviour {
         for (int i = 0; i < _size; i++) {
             for (int j = 0; j < _size; j++) {
                 for (int ir = 0; ir < _sampleResolution; ir++) {
+                    float val = sampleGrid[i, j];
+
                     for (int jr = 0; jr < _sampleResolution; jr++) {
-                        float val = sampleGrid[i, j];
                         int _pixelX = i * _sampleResolution + ir;
                         int _pixelY = j * _sampleResolution + jr;
 
                         _colors[_pixelX * _resolution + _pixelY] = new Color(val, val, val, 1);
-
                     }
                 }
             }
