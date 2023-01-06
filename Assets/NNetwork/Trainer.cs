@@ -59,7 +59,7 @@ public class Trainer {
 
         for (int m = 0; m < _modelManager.TrainModels.Length; m++) {
             _neuralNetwork.SetModel(_modelManager.TrainModels[m]);
-            float score = await _verifier.Verify();
+            float score = await _verifier.EvaluateModel();
             _modelManager.TrainModels[m].Score = score;
         }
     }
@@ -114,6 +114,52 @@ public class Trainer {
 
     internal Model GetBestModel() {
         return _modelManager.TrainModels[_bestModelIndex];
+    }
+
+
+    internal async Task TrainOneSupervisedRound() {
+        _bestModelIndex = 0;
+        Model bestModel = _modelManager.TrainModels[_bestModelIndex];
+        _neuralNetwork.SetModel(bestModel);
+        _neuralNetwork.InputLayer[0] = Mathf.RoundToInt(UnityEngine.Random.value);
+        _neuralNetwork.InputLayer[1] = Mathf.RoundToInt(UnityEngine.Random.value);
+        await _neuralNetwork.Run();
+        float actual =_verifier.CalculateWantedRes(_neuralNetwork.InputLayer)[0];
+        _neuralNetwork.OutputError[0] = _neuralNetwork.OutputLayer[0] - actual;
+        ActivationDerivativeLayer(_neuralNetwork.OutputError, _neuralNetwork.OutputLayer);
+
+        for (int i = _neuralNetwork.Errors.Length - 1; i >= 1; i--) {
+            PropagadeError(bestModel.Weights[i], _neuralNetwork.Errors[i - 1], _neuralNetwork.Errors[i]);
+            ActivationDerivativeLayer(_neuralNetwork.Errors[i - 1], _neuralNetwork.Layers[i]);
+        }
+
+        for (int i = 0; i < bestModel.Weights.Length; i++) {
+            
+            for (int j = 0; j < _neuralNetwork.Layers[i].Length; j++) {
+                
+                for (int k = 0; k < _neuralNetwork.Layers[i + 1].Length; k++) {
+                    float w = bestModel.Weights[i].GetValue(j, k);
+                    w = w - _settingsConfig.LearningRate * _neuralNetwork.Errors[i][k] * _neuralNetwork.Layers[i][j];
+                    bestModel.Weights[i].SetValue(w, j, k);
+                }
+            }
+        }
+    }
+
+    private void PropagadeError(WeightMatrix matrix, float[] inputError, float[] outputError) {
+        for (int i = 0; i < inputError.Length; i++) {
+            inputError[i] = 0;
+
+            for (int j = 0; j < outputError.Length; j++) {
+                inputError[i] += outputError[j] * matrix.GetValue(i, j);
+            }
+        }
+    }
+
+    private void ActivationDerivativeLayer(float[] error, float[] layer) {
+        for (int i = 0; i < error.Length; i++) {
+            error[i] = error[i] * MathFunctions.ActivationFuncDerivative(layer[i], _settingsConfig.ActivationType);
+        }
     }
 
 }

@@ -94,11 +94,11 @@ public class ModelManager : MonoBehaviour {
 
         for (int w = 0; w < parent1.Weights.Length; w++) {
 
-            int xSize = parent1.Weights[w].SizeX;
-            int ySize = parent1.Weights[w].SizeY;
+            int fromSize = parent1.Weights[w].FromSize;
+            int toSize = parent1.Weights[w].ToSize;
             
-            for (int i = 0; i < xSize; i++) {
-                for (int o = 0; o < ySize; o++) {
+            for (int i = 0; i < fromSize; i++) {
+                for (int o = 0; o < toSize; o++) {
                     float p1Val = parent1.Weights[w].GetValue(i, o);
                     float p2Val = parent2.Weights[w].GetValue(i, o);
 
@@ -108,7 +108,7 @@ public class ModelManager : MonoBehaviour {
                 }
             }
 
-            for (int o = 0; o < ySize; o++) {
+            for (int o = 0; o < toSize; o++) {
                 target.Weights[w].Biases[o] = GenerateNextValue(parent1.Weights[w].Biases[o], parent2.Weights[w].Biases[o]);
             }
 

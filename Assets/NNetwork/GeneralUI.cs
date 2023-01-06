@@ -28,4 +28,9 @@ public class GeneralUI : MonoBehaviour
         _flowMaster.ShowCorrectOutput();
 
     }
+
+    public void TrainOneSupervisedRound() {
+        _flowMaster.StartTrain();
+
+    }
 }

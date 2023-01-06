@@ -14,4 +14,8 @@ public class SettingsConfig : ScriptableObject {
     public int GenerationSize;
 
     public int GenerationsToRun;
+
+    public float LearningRate;
+
+    public MathFunctions.ActivationType ActivationType;
 }

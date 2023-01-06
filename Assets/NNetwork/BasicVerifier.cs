@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class XorVerifier : IVerifier {
+public class BasicVerifier : IVerifier {
 
     private XorNetOutputView _outputView;
     private NeuralNetwork _neuralNetwork;
@@ -13,7 +13,7 @@ public class XorVerifier : IVerifier {
     public int GetOtputSize => 1;
 
 
-    public XorVerifier(XorNetOutputView xorNetOutputView, NeuralNetwork neuralNetwork) {
+    public BasicVerifier(XorNetOutputView xorNetOutputView, NeuralNetwork neuralNetwork) {
         _outputView = xorNetOutputView;
         _neuralNetwork = neuralNetwork;
     }
@@ -62,10 +62,11 @@ public class XorVerifier : IVerifier {
     }
 
     public float[] CalculateWantedRes(float[] inputs) {
-        int operationRes = (Mathf.RoundToInt(inputs[0]) ^ Mathf.RoundToInt(inputs[1])) & 1;
-        //float operationRes = ins[0] * ins[1];
+        int operationRes = (Mathf.RoundToInt(inputs[0]) | (1 -  Mathf.RoundToInt(inputs[1]))) & 1;
+        //float operationRes = inputs[0] * inputs[1];
         return new float[] { (float)operationRes };
     }
+
 
     public async Task VisualizeSample() {
         var sampleGrid = new float[FIELD_SIZE, FIELD_SIZE];
@@ -100,4 +101,5 @@ public class XorVerifier : IVerifier {
         }
         _outputView.ShowOutput(sampleGrid);
     }
+
 }

@@ -7,10 +7,11 @@ public interface IVerifier {
     int GetInputSize { get; }
     int GetOtputSize { get; }
 
-    Task<float> Verify();
+    Task<float> EvaluateModel();
     void SetNewVerefication(bool isTraining);
 
     void SetFitness(Model[] models);
     Task VisualizeSample();
     void VisualizeOutputReference();
+    float[] CalculateWantedRes(float[] inputs);
 }

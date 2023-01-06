@@ -21,7 +21,7 @@ public class MainInstaller : MonoInstaller
         Container.Bind<Trainer>().AsSingle().NonLazy();
         Container.Bind<ComputeShader>().FromInstance(_computeshader);
         Container.Bind<SettingsConfig>().FromScriptableObject(settingsConfig).AsSingle().NonLazy();
-        Container.Bind<IVerifier>().To(typeof(XorVerifier)).AsSingle().NonLazy();
+        Container.Bind<IVerifier>().To(typeof(BasicVerifier)).AsSingle().NonLazy();
         Container.Bind<XorNetOutputView>().FromInstance(_xorNetOutputView);
         Container.Bind<FlowMaster>().FromInstance(_flowMaster);
     }

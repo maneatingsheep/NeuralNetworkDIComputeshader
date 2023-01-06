@@ -2,6 +2,9 @@
 using UnityEngine;
 
 public static class MathFunctions {
+
+    public enum ActivationType {Linear, Relu, Tanh, Sigmond}
+
     internal static void NormlizeVector(float[] vector) {
         float max = float.MinValue;
         float min = float.MaxValue;
@@ -20,11 +23,38 @@ public static class MathFunctions {
         
     }
 
-    internal static float ActivationFunc(float weightedSum) {
-        return Sigmoid(weightedSum);
-        //return Tanh(weightedSum);
-        //return Relu(weightedSum);
+    
+
+    internal static float ActivationFunc(float x, ActivationType actType) {
+        switch (actType) {
+            case ActivationType.Linear:
+                return x;
+            case ActivationType.Tanh:
+                return Tanh(x);
+            case ActivationType.Sigmond:
+                return Sigmoid(x);
+            case ActivationType.Relu:
+                return Relu(x);
+            default:
+                return x; //linear is default
+        }
     }
+
+    internal static float ActivationFuncDerivative(float x, ActivationType actType) {
+        switch (actType) {
+            case ActivationType.Linear:
+                return 1;
+            case ActivationType.Tanh:
+                throw new NotImplementedException();
+            case ActivationType.Sigmond:
+                return TanhDeriv(x);
+            case ActivationType.Relu:
+                return (x <=0)?0: 1;
+            default:
+                return 1; //linear is default
+        }
+    }
+
 
     private static float Relu(float x) {
         return Mathf.Max(0, x);
@@ -38,6 +68,14 @@ public static class MathFunctions {
     private static float Sigmoid(float x) {
         return 1f / (1f + MathF.Pow(MathF.E, -x));
     }
-   
 
+    
+
+    private static float TanhDeriv(float x) {
+        return x * (1f - x);
+    }
+
+    internal static float ActivationFuncDerivative(float v, object activationType) {
+        throw new NotImplementedException();
+    }
 }

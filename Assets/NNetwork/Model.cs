@@ -12,8 +12,9 @@ public class Model
         Weights = new WeightMatrix[settingsConfig.NumOfHiddenLayers + 1];
 
         for (int i = 0; i < Weights.Length; i++) {
-            var fromLayer = (i == 0) ? network.InputLayer : network.HiddenLayers[i - 1];
-            var toLayer = (i == settingsConfig.NumOfHiddenLayers) ? network.OutputLayer : network.HiddenLayers[i];
+
+            var fromLayer = network.Layers[i];
+            var toLayer = network.Layers[i + 1];
 
             Weights[i] = new WeightMatrix(fromLayer.Length, toLayer.Length);
         }
@@ -27,7 +28,7 @@ public class Model
     internal int GetWeightCount() {
         int count = 0;
         for (int i = 0; i < Weights.Length; i++) {
-            count += Weights[i].SizeX * Weights[i].SizeY;
+            count += Weights[i].FromSize * Weights[i].ToSize;
         }
 
         return count;

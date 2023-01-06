@@ -41,7 +41,7 @@ public class DigitDetectorVerifier : IVerifier {
         }
     }
 
-    public async Task<float> Verify() {
+    public async Task<float> EvaluateModel() {
 
 
         await _neuralNetwork.Run();
@@ -95,6 +95,9 @@ public class DigitDetectorVerifier : IVerifier {
         throw new NotImplementedException();
     }
 
+    public float[] CalculateWantedRes(float[] inputs) {
+        throw new NotImplementedException();
+    }
 
     int IVerifier.GetInputSize => _imageSize * _imageSize;
 

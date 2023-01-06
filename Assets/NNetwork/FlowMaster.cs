@@ -25,6 +25,7 @@ public class FlowMaster : MonoBehaviour
         _verifier = verifier;
     }
 
+    
     void Start() {
 
         _verifier.Init();
@@ -41,7 +42,8 @@ public class FlowMaster : MonoBehaviour
 
         _doRun = true;
         for (int i = 0; i < _settingsConfig.GenerationsToRun; i++) {
-            await _trainer.TrainOneGen();
+            await _trainer.TrainOneSupervisedRound();
+            //await _trainer.TrainOneGen();
             await ShowBestOutputAsync();
             await Task.Yield();
             if (!_doRun) {
@@ -73,7 +75,6 @@ public class FlowMaster : MonoBehaviour
         _neuralNetwork.SetModel(bestModel);
         await _verifier.VisualizeSample();
     }
-
 
     private void OnDestroy() {
         _neuralNetwork.Dispose();
