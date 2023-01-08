@@ -121,44 +121,72 @@ public class Trainer {
         _bestModelIndex = 0;
         Model bestModel = _modelManager.TrainModels[_bestModelIndex];
         _neuralNetwork.SetModel(bestModel);
-        _neuralNetwork.InputLayer[0] = Mathf.RoundToInt(UnityEngine.Random.value);
-        _neuralNetwork.InputLayer[1] = Mathf.RoundToInt(UnityEngine.Random.value);
+        _neuralNetwork.InputLayer[0] = UnityEngine.Random.value;
+        _neuralNetwork.InputLayer[1] = UnityEngine.Random.value;
         await _neuralNetwork.Run();
         float actual =_verifier.CalculateWantedRes(_neuralNetwork.InputLayer)[0];
-        _neuralNetwork.OutputError[0] = _neuralNetwork.OutputLayer[0] - actual;
-        ActivationDerivativeLayer(_neuralNetwork.OutputError, _neuralNetwork.OutputLayer);
+        _neuralNetwork.OutputError[0] = actual - _neuralNetwork.OutputLayer[0];
 
-        for (int i = _neuralNetwork.Errors.Length - 1; i >= 1; i--) {
-            PropagadeError(bestModel.Weights[i], _neuralNetwork.Errors[i - 1], _neuralNetwork.Errors[i]);
-            ActivationDerivativeLayer(_neuralNetwork.Errors[i - 1], _neuralNetwork.Layers[i]);
+        //calculate derivvatives to all but input
+        for (int i = 1; i < _neuralNetwork.Layers.Length; i++) {
+            ActivationDerivativeLayer(_neuralNetwork.Layers[i], _neuralNetwork.Derriivetives[i - 1]);
         }
 
+        //set up output error signal
+        for (int i = 0; i < _neuralNetwork.OutputError.Length; i++) {
+            _neuralNetwork.OutputError[i] *= _neuralNetwork.Derriivetives[_neuralNetwork.Derriivetives.Length - 1][i];
+        }
+
+        //propogate error signals back to front
+        for (int i = _neuralNetwork.Errors.Length - 1; i >= 1; i--) {
+            PropagadeErrorSignal(bestModel.Weights[i], _neuralNetwork.Errors[i - 1], _neuralNetwork.Errors[i], _neuralNetwork.Derriivetives[i - 1]);
+        }
+
+        //adjust weights
         for (int i = 0; i < bestModel.Weights.Length; i++) {
-            
-            for (int j = 0; j < _neuralNetwork.Layers[i].Length; j++) {
-                
-                for (int k = 0; k < _neuralNetwork.Layers[i + 1].Length; k++) {
-                    float w = bestModel.Weights[i].GetValue(j, k);
-                    w = w - _settingsConfig.LearningRate * _neuralNetwork.Errors[i][k] * _neuralNetwork.Layers[i][j];
-                    bestModel.Weights[i].SetValue(w, j, k);
-                }
+            AdjustWeights(bestModel.Weights[i], _neuralNetwork.Errors[i], _neuralNetwork.Layers[i]);
+        }
+
+        
+    }
+
+    private void AdjustWeights(WeightMatrix weightMatrix, float[] outputErrorSignal, float[] inputLayer) {
+
+        for (int i = 0; i < inputLayer.Length; i++) {
+            for (int j = 0; j < outputErrorSignal.Length; j++) {
+
+                float grad = inputLayer[i] * outputErrorSignal[j];
+
+
+                float w = weightMatrix.GetValue(i, j);
+                w += _settingsConfig.LearningRate * grad;
+                weightMatrix.SetValue(w, i, j);
             }
+        }
+
+        for (int i = 0; i < outputErrorSignal.Length; i++) {
+            float biasGrad = outputErrorSignal[i];
+            weightMatrix.Biases[i] += _settingsConfig.LearningRate * biasGrad;
+
         }
     }
 
-    private void PropagadeError(WeightMatrix matrix, float[] inputError, float[] outputError) {
+    private void PropagadeErrorSignal(WeightMatrix matrix, float[] inputError, float[] outputError, float[] derrivetives) {
+
         for (int i = 0; i < inputError.Length; i++) {
             inputError[i] = 0;
 
             for (int j = 0; j < outputError.Length; j++) {
                 inputError[i] += outputError[j] * matrix.GetValue(i, j);
             }
+
+            inputError[i] *= derrivetives[i];
         }
     }
 
-    private void ActivationDerivativeLayer(float[] error, float[] layer) {
-        for (int i = 0; i < error.Length; i++) {
-            error[i] = error[i] * MathFunctions.ActivationFuncDerivative(layer[i], _settingsConfig.ActivationType);
+    private void ActivationDerivativeLayer(float[] layer, float[] derrivetives) {
+        for (int i = 0; i < layer.Length; i++) {
+            derrivetives[i] = MathFunctions.ActivationFuncDerivative(layer[i], _settingsConfig.ActivationType);
         }
     }
 

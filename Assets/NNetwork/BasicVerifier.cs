@@ -62,8 +62,10 @@ public class BasicVerifier : IVerifier {
     }
 
     public float[] CalculateWantedRes(float[] inputs) {
-        int operationRes = (Mathf.RoundToInt(inputs[0]) | (1 -  Mathf.RoundToInt(inputs[1]))) & 1;
+        int operationRes = (Mathf.RoundToInt(inputs[0]) ^ (Mathf.RoundToInt(inputs[1]))) & 1;
         //float operationRes = inputs[0] * inputs[1];
+        //float operationRes = (inputs[0] > inputs[1]) ? 1 : 0;
+
         return new float[] { (float)operationRes };
     }
 
@@ -78,7 +80,8 @@ public class BasicVerifier : IVerifier {
 
                 await _neuralNetwork.Run();
 
-                sampleGrid[i, j] = _neuralNetwork.OutputLayer[0]; //show wanted result
+                //sampleGrid[i, j] = Mathf.Round(_neuralNetwork.OutputLayer[0]); //show result
+                sampleGrid[i, j] = _neuralNetwork.OutputLayer[0]; //show result
             }
         }
 

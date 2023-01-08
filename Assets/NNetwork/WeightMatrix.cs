@@ -24,8 +24,8 @@ public class WeightMatrix {
 
         Biases = new float[toSize];
         for (int i = 0; i < toSize; i++) {
-            //Biases[i] = Random.value - 0.5f;
-            Biases[i] = 0;
+            Biases[i] = Random.value - 0.5f;
+            //Biases[i] = 0;
         }
     }
 

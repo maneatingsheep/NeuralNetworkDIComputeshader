@@ -6,6 +6,7 @@ public class NeuralNetwork {
 
     public float[][] Layers;
     public float[][] Errors;
+    public float[][] Derriivetives;
 
     private Model _model;
 
@@ -40,16 +41,20 @@ public class NeuralNetwork {
 
         Layers = new float[_settingsConfig.NumOfHiddenLayers + 2][];
         Errors = new float[_settingsConfig.NumOfHiddenLayers + 1][];
+        Derriivetives = new float[_settingsConfig.NumOfHiddenLayers + 1][];
+        
 
         Layers[0] = new float[inputSize];
 
         for (int i = 0; i < _settingsConfig.NumOfHiddenLayers; i++) {
             Layers[i + 1] = new float[_settingsConfig.HiddenLayerSize];
             Errors[i] = new float[_settingsConfig.HiddenLayerSize];
+            Derriivetives[i] = new float[_settingsConfig.HiddenLayerSize];
         }
 
         Layers[_settingsConfig.NumOfHiddenLayers + 1] = new float[outputSize];
         Errors[_settingsConfig.NumOfHiddenLayers] = new float[outputSize];
+        Derriivetives[_settingsConfig.NumOfHiddenLayers] = new float[outputSize];
     }
 
     internal void SetModel(Model model) {

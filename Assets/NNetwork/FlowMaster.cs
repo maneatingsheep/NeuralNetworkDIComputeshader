@@ -41,19 +41,13 @@ public class FlowMaster : MonoBehaviour
         await Task.Yield();
 
         _doRun = true;
-        for (int i = 0; i < _settingsConfig.GenerationsToRun; i++) {
+        while (_doRun) {
             await _trainer.TrainOneSupervisedRound();
-            //await _trainer.TrainOneGen();
             await ShowBestOutputAsync();
             await Task.Yield();
-            if (!_doRun) {
-                break;
-            }
         }
 
-        Debug.Log("Training Complete");
-
-        _doRun = false;
+        Debug.Log("Training Stopped");
 
     }
 
